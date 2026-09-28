@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "TopUpHubCustomV4"
+HubGui.Name = "TopUpHubCustomV5"
 HubGui.ResetOnSpawn = false
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
 if not HubGui.Parent then HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
@@ -69,7 +69,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "TopUp Hub | V4 (Visual)"
+Title.Text = "TopUp Hub | V5"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -236,7 +236,6 @@ local function GetFullPath(obj)
     return "PlayerGui." .. path
 end
 
--- Fungsi memunculkan Teks di layar pas di tengah/bawah menu
 local function TampilkanLabelDiLayar(guiElement)
     pcall(function()
         local labelMarker = Instance.new("TextLabel")
@@ -252,18 +251,14 @@ local function TampilkanLabelDiLayar(guiElement)
         labelMarker.ZIndex = 100
         Instance.new("UICorner", labelMarker).CornerRadius = UDim.new(0, 8)
         
-        -- Cari posisi dari menu popup-nya
         if guiElement:IsA("GuiObject") then
             local absPos = guiElement.AbsolutePosition
             local absSize = guiElement.AbsoluteSize
-            -- Letakkan agak ke bawah tengah dari menu itu
             labelMarker.Position = UDim2.new(0, absPos.X + (absSize.X / 2) - 125, 0, absPos.Y + (absSize.Y / 2) + (absSize.Y / 3))
         else
-            -- Kalau tidak dapat posisinya, taruh di bawah tengah layar
             labelMarker.Position = UDim2.new(0.5, -125, 0.8, 0)
         end
 
-        -- Hancurkan tulisan setelah 4 detik
         task.delay(4, function()
             if labelMarker then labelMarker:Destroy() end
         end)
@@ -273,18 +268,15 @@ end
 local function ProcessDetectedUI(guiElement)
     if not activeScanner then return end
     if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
-        if guiElement.Name == "TopUpHubCustomV4" then return end 
+        if string.find(guiElement.Name, "TopUpHub") then return end 
         
         local path = GetFullPath(guiElement)
         
         if not savedUIs[path] then
             savedUIs[path] = true
-            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI' untuk melihat/copy."
-            
-            -- Memunculkan Label Nama Visual di layar
+            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI' untuk melihat."
             TampilkanLabelDiLayar(guiElement)
             
-            -- Buat tombol di tab riwayat
             local btn = Instance.new("TextButton", HistoryScroll)
             btn.Size = UDim2.new(1, -10, 0, 35)
             btn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
@@ -296,7 +288,7 @@ local function ProcessDetectedUI(guiElement)
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
             
             btn.MouseButton1Click:Connect(function()
-                ScanResult.Text = "Path Dipilih (Siap di copy):\n" .. path
+                ScanResult.Text = "Path Dipilih:\n" .. path
                 SwitchTab(PageScan, false)
                 pcall(function() setclipboard(path) end) 
             end)
@@ -330,7 +322,7 @@ task.spawn(function()
 end)
 
 -- =======================================
--- KONTEN: AUTO CLICK
+-- KONTEN: AUTO CLICK (+ DETEKSI POPUP GLYPH)
 -- =======================================
 local cpsValue = 10
 local autoClicking = false
@@ -367,12 +359,36 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
         task.spawn(function()
             while autoClicking do
                 pcall(function()
+                    -- 1. Klik Bola Target Utama
                     local targetX = TargetBall.AbsolutePosition.X + (TargetBall.AbsoluteSize.X / 2)
                     local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2) + 36
                     TargetBall.Visible = false 
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, true, game, 1)
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, false, game, 1)
                     TargetBall.Visible = true
+
+                    -- 2. Klik Otomatis Popup Glyph Jika Muncul
+                    local pGui = LocalPlayer:FindFirstChild("PlayerGui")
+                    if pGui then
+                        local overlay = pGui:FindFirstChild("Overlay")
+                        if overlay then
+                            local popup = overlay:FindFirstChild("POPUP")
+                            if popup then
+                                local hint = popup:FindFirstChild("Hint")
+                                if hint then
+                                    local glyph = hint:FindFirstChild("Glyph")
+                                    -- Cek jika Glyph ada dan terlihat di layar
+                                    if glyph and glyph.Visible then
+                                        local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2)
+                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + 36
+                                        VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, true, game, 1)
+                                        VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, false, game, 1)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    
                 end)
                 task.wait(1 / cpsValue)
             end
