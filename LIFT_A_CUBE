@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "LitedirtHubStable"
+HubGui.Name = "LitedirtHubWithWalkSpeed"
 HubGui.ResetOnSpawn = false
 HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
@@ -341,10 +341,30 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =======================================
--- TAB 4: SETTINGS
+-- TAB 4: SETTINGS (WALKSPEED & DESTROY)
 -- =======================================
+local WSInput = Instance.new("TextBox", PageSet)
+WSInput.Size = UDim2.new(1, 0, 0, 35)
+WSInput.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+WSInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+WSInput.PlaceholderText = "Ketik WalkSpeed (default 16)"
+WSInput.Text = ""
+WSInput.Font = Enum.Font.GothamBold
+WSInput.TextSize = 12
+Instance.new("UICorner", WSInput)
+
+WSInput.FocusLost:Connect(function()
+    local speed = tonumber(WSInput.Text)
+    if speed then
+        pcall(function()
+            LocalPlayer.Character.Humanoid.WalkSpeed = speed
+        end)
+    end
+end)
+
 local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
+DestroyBtn.Position = UDim2.new(0, 0, 0, 45)
 DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 DestroyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 DestroyBtn.Text = "DESTROY GUI"
