@@ -3,10 +3,10 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local GuiService = game:GetService("GuiService")
+local HttpService = game:GetService("HttpService")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "LitedirtLiftACubeHub"
+HubGui.Name = "LitedirtLiftACubeHubV3"
 HubGui.ResetOnSpawn = false
 HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
@@ -21,7 +21,7 @@ TargetBall.Position = UDim2.new(0.5, -20, 0.5, -20)
 TargetBall.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
 TargetBall.BackgroundTransparency = 0.5
 TargetBall.BorderSizePixel = 0
-TargetBall.Visible = false
+TargetBall.Visible = false -- Default tersembunyi
 TargetBall.Parent = HubGui
 Instance.new("UICorner", TargetBall).CornerRadius = UDim.new(1, 0)
 local BallStroke = Instance.new("UIStroke", TargetBall)
@@ -57,8 +57,8 @@ end)
 -- FRAME UTAMA UI (Litedirt | lift a cube)
 -- =======================================
 local MainFrame = Instance.new("Frame", HubGui)
-MainFrame.Size = UDim2.new(0, 450, 0, 260)
-MainFrame.Position = UDim2.new(0.5, -225, 0.6, -130)
+MainFrame.Size = UDim2.new(0, 450, 0, 280)
+MainFrame.Position = UDim2.new(0.5, -225, 0.6, -140)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -92,7 +92,7 @@ CollapseBtn.MouseButton1Click:Connect(function()
         MainFrame:TweenSize(UDim2.new(0, 450, 0, 30), "Out", "Quad", 0.3, true)
         CollapseBtn.Text = "➕"
     else
-        MainFrame:TweenSize(UDim2.new(0, 450, 0, 260), "Out", "Quad", 0.3, true)
+        MainFrame:TweenSize(UDim2.new(0, 450, 0, 280), "Out", "Quad", 0.3, true)
         CollapseBtn.Text = "➖"
     end
 end)
@@ -123,7 +123,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- =======================================
--- TABS & KONTEN
+-- TABS & KONTEN (HOME & AUTOFARM)
 -- =======================================
 local TabContainer = Instance.new("Frame", MainFrame)
 TabContainer.Size = UDim2.new(0, 110, 1, -32)
@@ -148,10 +148,9 @@ local function CreateTabButton(name, posY)
     return btn
 end
 
-local TabScan = CreateTabButton("1. Scan Layar", 5)
-local TabClickBall = CreateTabButton("2. Auto Target", 40)
-local TabClickGlyph = CreateTabButton("3. Auto Glyph", 75)
-local TabSet = CreateTabButton("4. Settings", 110)
+local TabHome = CreateTabButton("1. Home", 5)
+local TabAutoFarm = CreateTabButton("2. AutoFarm", 40)
+local TabSet = CreateTabButton("3. Settings", 75)
 
 local function CreatePage()
     local page = Instance.new("Frame", ContentContainer)
@@ -161,105 +160,105 @@ local function CreatePage()
     return page
 end
 
-local PageScan = CreatePage(); PageScan.Visible = true
-local PageClickBall = CreatePage()
-local PageClickGlyph = CreatePage()
+local PageHome = CreatePage(); PageHome.Visible = true
+local PageAutoFarm = CreatePage()
 local PageSet = CreatePage()
 
-local function SwitchTab(pageToShow, showBall)
-    PageScan.Visible = (pageToShow == PageScan)
-    PageClickBall.Visible = (pageToShow == PageClickBall)
-    PageClickGlyph.Visible = (pageToShow == PageClickGlyph)
-    PageSet.Visible = (pageToShow == PageSet)
-    TargetBall.Visible = showBall
-end
-
-TabScan.MouseButton1Click:Connect(function() SwitchTab(PageScan, false) end)
-TabClickBall.MouseButton1Click:Connect(function() SwitchTab(PageClickBall, true) end)
-TabClickGlyph.MouseButton1Click:Connect(function() SwitchTab(PageClickGlyph, false) end)
-TabSet.MouseButton1Click:Connect(function() SwitchTab(PageSet, false) end)
+TabHome.MouseButton1Click:Connect(function() PageHome.Visible = true; PageAutoFarm.Visible = false; PageSet.Visible = false end)
+TabAutoFarm.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoFarm.Visible = true; PageSet.Visible = false end)
+TabSet.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoFarm.Visible = false; PageSet.Visible = true end)
 
 -- =======================================
--- TAB 1: SCAN LAYAR
+-- TAB 1: HOME (INFO LISENSI & AKUN)
 -- =======================================
-local ToggleScanBtn = Instance.new("TextButton", PageScan)
-ToggleScanBtn.Size = UDim2.new(1, 0, 0, 35)
-ToggleScanBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-ToggleScanBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleScanBtn.Text = "🔴 Deteksi Layar OFF"
-ToggleScanBtn.Font = Enum.Font.GothamBold
-Instance.new("UICorner", ToggleScanBtn)
+local InfoLabel = Instance.new("TextLabel", PageHome)
+InfoLabel.Size = UDim2.new(1, 0, 1, 0)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+InfoLabel.Font = Enum.Font.Gotham
+InfoLabel.TextSize = 12
+InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+InfoLabel.TextYAlignment = Enum.TextYAlignment.Top
+InfoLabel.TextWrapped = true
 
-local ScanResult = Instance.new("TextLabel", PageScan)
-ScanResult.Size = UDim2.new(1, 0, 1, -45)
-ScanResult.Position = UDim2.new(0, 0, 0, 45)
-ScanResult.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-ScanResult.TextColor3 = Color3.fromRGB(200, 200, 200)
-ScanResult.Text = "Menunggu interaksi popup..."
-ScanResult.Font = Enum.Font.Gotham
-ScanResult.TextWrapped = true
-ScanResult.TextSize = 12
-Instance.new("UICorner", ScanResult)
-
-local activeScanner = false
-ToggleScanBtn.MouseButton1Click:Connect(function()
-    activeScanner = not activeScanner
-    if activeScanner then
-        ToggleScanBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
-        ToggleScanBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleScanBtn.Text = "🟢 Deteksi Layar ON"
-    else
-        ToggleScanBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-        ToggleScanBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleScanBtn.Text = "🔴 Deteksi Layar OFF"
+-- Mendapatkan informasi client executor
+local executorName = "Unknown Executor"
+pcall(function()
+    if identifyexecutor then
+        executorName = identifyexecutor()
+    elseif getexecutorname then
+        executorName = getexecutorname()
     end
 end)
 
-local function ProcessDetectedUI(guiElement)
-    if not activeScanner then return end
-    if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
-        if string.find(guiElement.Name, "Litedirt") then return end 
-        ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name
+-- Mendapatkan tanggal pembuatan akun Roblox
+local accountAgeDays = LocalPlayer.AccountAge
+local creationTimestamp = os.time() - (accountAgeDays * 86400)
+local creationDate = os.date("%d-%m-%Y", creationTimestamp)
+
+-- Update Jam dan Info secara Live
+task.spawn(function()
+    while task.wait(1) do
+        local currentTime = os.date("%H:%M:%S")
+        InfoLabel.Text = string.format(
+            "📋 LISENSI STATUS: FREE (UNLOCKED)\n\n" ..
+            "👤 Nama Akun : %s\n" ..
+            "📅 Akun Dibuat: %s (%d Hari)\n" ..
+            "⚡ Client Tool : %s\n" ..
+            "⏰ Waktu Server: %s",
+            LocalPlayer.Name,
+            creationDate,
+            accountAgeDays,
+            executorName,
+            currentTime
+        )
     end
-end
-
-LocalPlayer.PlayerGui.DescendantAdded:Connect(function(desc)
-    pcall(function()
-        task.wait(0.1)
-        if desc:IsA("GuiObject") or desc:IsA("ScreenGui") then
-            if desc.Visible or desc:IsA("ScreenGui") then ProcessDetectedUI(desc) end
-        end
-    end)
 end)
 
 -- =======================================
--- TAB 2: AUTO TARGET (BOLA)
+-- TAB 2: AUTOFARM (DENGAN TOMBOL BOLA TERPISAH)
 -- =======================================
-local cpsBall = 10
-local autoBallRunning = false
+local AFScroll = Instance.new("ScrollingFrame", PageAutoFarm)
+AFScroll.Size = UDim2.new(1, 0, 1, 0)
+AFScroll.BackgroundTransparency = 1
+AFScroll.ScrollBarThickness = 4
+AFScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+local AFLayout = Instance.new("UIListLayout", AFScroll)
+AFLayout.Padding = UDim.new(0, 8)
 
-local CPSInputBall = Instance.new("TextBox", PageClickBall)
-CPSInputBall.Size = UDim2.new(1, 0, 0, 35)
-CPSInputBall.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-CPSInputBall.TextColor3 = Color3.fromRGB(255, 255, 255)
-CPSInputBall.Text = "Kecepatan CPS: 10"
-CPSInputBall.Font = Enum.Font.Gotham
-Instance.new("UICorner", CPSInputBall)
-CPSInputBall.FocusLost:Connect(function()
-    local val = tonumber(string.match(CPSInputBall.Text, "%d+"))
-    if val then cpsBall = val end
-    CPSInputBall.Text = "Kecepatan CPS: " .. tostring(cpsBall)
+-- 1. Tombol Munculkan Bola Target
+local TitleBall = Instance.new("TextLabel", AFScroll)
+TitleBall.Size = UDim2.new(1, 0, 0, 20)
+TitleBall.BackgroundTransparency = 1
+TitleBall.Text = "--- AUTO TARGET (BOLA) ---"
+TitleBall.TextColor3 = Color3.fromRGB(0, 255, 255)
+TitleBall.Font = Enum.Font.GothamBold
+TitleBall.TextSize = 12
+
+local ShowBallBtn = Instance.new("TextButton", AFScroll)
+ShowBallBtn.Size = UDim2.new(1, 0, 0, 30)
+ShowBallBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+ShowBallBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
+ShowBallBtn.Text = "👁️ Tampilkan/Sembunyikan Bola"
+ShowBallBtn.Font = Enum.Font.GothamSemibold
+ShowBallBtn.TextSize = 12
+Instance.new("UICorner", ShowBallBtn)
+
+ShowBallBtn.MouseButton1Click:Connect(function()
+    TargetBall.Visible = not TargetBall.Visible
 end)
 
-local ToggleBallBtn = Instance.new("TextButton", PageClickBall)
-ToggleBallBtn.Size = UDim2.new(1, 0, 0, 45)
-ToggleBallBtn.Position = UDim2.new(0, 0, 0, 45)
+local ToggleBallBtn = Instance.new("TextButton", AFScroll)
+ToggleBallBtn.Size = UDim2.new(1, 0, 0, 35)
 ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 ToggleBallBtn.Text = "🔴 Auto Target OFF"
 ToggleBallBtn.Font = Enum.Font.GothamBold
+ToggleBallBtn.TextSize = 12
 Instance.new("UICorner", ToggleBallBtn)
 
+local cpsBall = 10
+local autoBallRunning = false
 ToggleBallBtn.MouseButton1Click:Connect(function()
     autoBallRunning = not autoBallRunning
     if autoBallRunning then
@@ -288,15 +287,19 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- =======================================
--- TAB 3: AUTO GLYPH (DEFAULT OFFSET 50, ANTI-ROBUX, & JEDA SPAWN)
--- =======================================
-local autoGlyphRunning = false
-local glyphOffsetX = 50 -- Default 50 Kanan/Kiri
-local glyphOffsetY = 50 -- Default 50 Bawah/Atas
+-- 2. Bagian Auto Glyph & Train
+local TitleGlyph = Instance.new("TextLabel", AFScroll)
+TitleGlyph.Size = UDim2.new(1, 0, 0, 20)
+TitleGlyph.BackgroundTransparency = 1
+TitleGlyph.Text = "--- AUTO GLYPH & TRAIN ---"
+TitleGlyph.TextColor3 = Color3.fromRGB(0, 255, 255)
+TitleGlyph.Font = Enum.Font.GothamBold
+TitleGlyph.TextSize = 12
 
--- Input Kotak Offset X
-local OffsetXInput = Instance.new("TextBox", PageClickGlyph)
+local glyphOffsetX = 50 
+local glyphOffsetY = 50 
+
+local OffsetXInput = Instance.new("TextBox", AFScroll)
 OffsetXInput.Size = UDim2.new(1, 0, 0, 30)
 OffsetXInput.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 OffsetXInput.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -310,10 +313,8 @@ OffsetXInput.FocusLost:Connect(function()
     OffsetXInput.Text = "Offset X: " .. tostring(glyphOffsetX)
 end)
 
--- Input Kotak Offset Y
-local OffsetYInput = Instance.new("TextBox", PageClickGlyph)
+local OffsetYInput = Instance.new("TextBox", AFScroll)
 OffsetYInput.Size = UDim2.new(1, 0, 0, 30)
-OffsetYInput.Position = UDim2.new(0, 0, 0, 35)
 OffsetYInput.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 OffsetYInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 OffsetYInput.Text = "Offset Y: 50"
@@ -326,9 +327,8 @@ OffsetYInput.FocusLost:Connect(function()
     OffsetYInput.Text = "Offset Y: " .. tostring(glyphOffsetY)
 end)
 
-local ToggleGlyphBtn = Instance.new("TextButton", PageClickGlyph)
-ToggleGlyphBtn.Size = UDim2.new(1, 0, 0, 40)
-ToggleGlyphBtn.Position = UDim2.new(0, 0, 0, 75)
+local ToggleGlyphBtn = Instance.new("TextButton", AFScroll)
+ToggleGlyphBtn.Size = UDim2.new(1, 0, 0, 35)
 ToggleGlyphBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleGlyphBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 ToggleGlyphBtn.Text = "🔴 Auto Glyph & Train OFF"
@@ -336,6 +336,7 @@ ToggleGlyphBtn.Font = Enum.Font.GothamBold
 ToggleGlyphBtn.TextSize = 12
 Instance.new("UICorner", ToggleGlyphBtn)
 
+local autoGlyphRunning = false
 ToggleGlyphBtn.MouseButton1Click:Connect(function()
     autoGlyphRunning = not autoGlyphRunning
     if autoGlyphRunning then
@@ -348,7 +349,7 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
                 pcall(function()
                     local pGui = LocalPlayer:FindFirstChild("PlayerGui")
                     if pGui then
-                        -- 1. PENGAMAN: Tutup otomatis jika muncul menu/popup Robux (Tombol X)
+                        -- Proteksi Robux: Auto klik X jika menu pembelian muncul
                         local robuxPopup = pGui:FindFirstChild("PurchasePrompt") or pGui:FindFirstChild("RobuxPrompt") or pGui:FindFirstChild("Shop")
                         if robuxPopup then
                             local closeBtn = robuxPopup:FindFirstChild("Close") or robuxPopup:FindFirstChild("X") or robuxPopup:FindFirstChild("Exit")
@@ -361,7 +362,7 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
                             end
                         end
 
-                        -- 2. AUTO TRAIN & GLYPH
+                        -- Auto Glyph & Train dengan Jeda Spawn
                         local overlay = pGui:FindFirstChild("Overlay")
                         if overlay then
                             local popup = overlay:FindFirstChild("POPUP")
@@ -370,14 +371,12 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
                                 if hint then
                                     local glyph = hint:FindFirstChild("Glyph")
                                     if glyph and glyph.AbsoluteSize.X > 0 and glyph.Visible then
-                                        -- Klik Glyph
                                         local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2) + glyphOffsetX
                                         local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + glyphOffsetY
                                         
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, true, game, 1)
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, false, game, 1)
                                         
-                                        -- Setop sementara (Jeda) agar tidak random/klik beruntun sebelum glyph berikutnya spawn
                                         task.wait(1.5) 
                                     end
                                 end
@@ -396,7 +395,7 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =======================================
--- TAB 4: SETTINGS
+-- TAB 3: SETTINGS
 -- =======================================
 local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
@@ -409,6 +408,6 @@ Instance.new("UICorner", DestroyBtn)
 DestroyBtn.MouseButton1Click:Connect(function()
     autoBallRunning = false
     autoGlyphRunning = false
-    activeScanner = false
+    TargetBall:Destroy()
     HubGui:Destroy()
 end)
