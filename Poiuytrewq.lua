@@ -6,9 +6,9 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local GuiService = game:GetService("GuiService")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "TopUpHubCustomV6"
+HubGui.Name = "TopUpHubCustomV7"
 HubGui.ResetOnSpawn = false
-HubGui.IgnoreGuiInset = true -- [PENTING] Agar posisi bola 100% akurat tanpa terpotong menu atas
+HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
 if not HubGui.Parent then HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
@@ -71,7 +71,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "TopUp Hub | V6 (Akurat)"
+Title.Text = "TopUp Hub | V7 (Ultra Akurat)"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -324,7 +324,7 @@ task.spawn(function()
 end)
 
 -- =======================================
--- KONTEN: AUTO CLICK (+ DETEKSI GLYPH)
+-- KONTEN: AUTO CLICK (+ PRESISI ABSOLUTE)
 -- =======================================
 local cpsValue = 10
 local autoClicking = false
@@ -361,19 +361,16 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
         task.spawn(function()
             while autoClicking do
                 pcall(function()
-                    -- Ambil nilai inset dinamis langsung dari sistem Roblox
-                    local guiInset, _ = GuiService:GetGuiInset()
-                    
-                    -- 1. Klik Bola Target Utama
-                    -- Karena HubGui IgnoreGuiInset = true, maka posisinya tidak perlu ditambah Inset.
+                    -- 1. Klik Bola Target Utama (Menggunakan titik tengah absolut murni)
                     local targetX = TargetBall.AbsolutePosition.X + (TargetBall.AbsoluteSize.X / 2)
                     local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2)
+                    
                     TargetBall.Visible = false 
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, true, game, 1)
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, false, game, 1)
                     TargetBall.Visible = true
 
-                    -- 2. Klik Otomatis Popup Glyph Jika Muncul
+                    -- 2. Klik Otomatis Popup Glyph (Pasti tepat di tengah gambar/tombolnya)
                     local pGui = LocalPlayer:FindFirstChild("PlayerGui")
                     if pGui then
                         local overlay = pGui:FindFirstChild("Overlay")
@@ -383,10 +380,10 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
                                 local hint = popup:FindFirstChild("Hint")
                                 if hint then
                                     local glyph = hint:FindFirstChild("Glyph")
-                                    if glyph and glyph.Visible then
+                                    -- Memastikan Glyph benar-benar ada dan sedang aktif/terlihat di layar
+                                    if glyph and glyph.AbsoluteSize.X > 0 and glyph.Visible then
                                         local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2)
-                                        -- Karena Glyph kemungkinan terpengaruh UI game, kita pakai offset inset sistem.
-                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + guiInset.Y
+                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2)
                                         
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, true, game, 1)
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, false, game, 1)
@@ -410,6 +407,7 @@ end)
 -- =======================================
 -- KONTEN: SETTINGS / DESTROY
 -- =======================================
+LeftoverBtn = nil -- placeholder
 local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
 DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
