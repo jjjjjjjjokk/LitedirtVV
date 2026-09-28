@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/jjjjjjjjokk/LitedirtVV/refs/heads/Litedirt-scriptlua/QWERTYUIOP.LUA"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/litedirt67/LitedirtVV/refs/heads/Litedirt-scriptlua/QWERTYUIOP.LUA"))()
