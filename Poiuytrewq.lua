@@ -5,12 +5,12 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- Tema UI Neon (Mirip Web TopUp Modern)
+-- Tema UI Neon
 local customTheme = {
     TextColor = Color3.fromRGB(255, 255, 255),
     Background = Color3.fromRGB(15, 15, 20),
     Topbar = Color3.fromRGB(20, 20, 25),
-    Shadow = Color3.fromRGB(0, 255, 255), -- Warna Glow Cyan
+    Shadow = Color3.fromRGB(0, 255, 255),
     DialogBackground = Color3.fromRGB(20, 20, 25),
     TabBackground = Color3.fromRGB(15, 15, 20),
     TabStroke = Color3.fromRGB(0, 255, 255),
@@ -36,7 +36,7 @@ local customTheme = {
 
 -- Membuat Window
 local Window = Rayfield:CreateWindow({
-    Name = "TopUp Hub | UI Scanner",
+    Name = "TopUp Hub | V2",
     LoadingTitle = "Memuat Sistem...",
     LoadingSubtitle = "Menyiapkan Auto Click & Scanner",
     ConfigurationSaving = { Enabled = false },
@@ -45,14 +45,20 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ==========================================
--- TAB 1: SCANNER MENU LAYAR (UI DETECTOR)
+-- MEMBUAT SEMUA TAB TERLEBIH DAHULU
 -- ==========================================
 local ScannerTab = Window:CreateTab("Scan Layar", 10034237190)
+local ClickTab = Window:CreateTab("Auto Click", 6536645908)
+local SettingsTab = Window:CreateTab("⚙️ Settings", 10734949856)
+
+-- ==========================================
+-- ISI TAB 1: SCANNER MENU LAYAR
+-- ==========================================
 local activeScanner = false
 
 local UIResult = ScannerTab:CreateParagraph({
     Title = "Menunggu Interaksi...",
-    Content = "Aktifkan toggle di bawah, lalu tap/klik sesuatu di dalam game (misal: 'Train'). Jika ada menu baru yang muncul di layar, namanya akan terdeteksi di sini."
+    Content = "Aktifkan toggle, lalu tap/klik sesuatu di layar (misal: 'Train'). Menu yang muncul akan terdeteksi di sini."
 })
 
 ScannerTab:CreateToggle({
@@ -69,57 +75,9 @@ ScannerTab:CreateToggle({
     end,
 })
 
--- Logika Deteksi Layar (Mendeteksi Frame/ScreenGui yang tiba-tiba muncul)
-local function MonitorUI(guiElement)
-    -- Hanya mengecek frame, textlabel, image, atau screengui
-    if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
-        guiElement:GetPropertyChangedSignal("Visible"):Connect(function()
-            if activeScanner and guiElement.Visible then
-                local path = guiElement.Name
-                local parent = guiElement.Parent
-                -- Membuat path agar gampang dicari
-                for i = 1, 3 do 
-                    if parent and parent ~= LocalPlayer:FindFirstChild("PlayerGui") and parent.Name ~= "PlayerGui" then
-                        path = parent.Name .. " -> " .. path
-                        parent = parent.Parent
-                    else
-                        break
-                    end
-                end
-                
-                UIResult:Set({
-                    Title = "🔥 Menu Terdeteksi!",
-                    Content = "Nama UI: " .. guiElement.Name .. "\nPath: " .. path
-                })
-            end
-        end)
-    end
-end
-
--- Menerapkan fungsi monitor ke semua UI yang sudah ada di layar
-for _, gui in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetDescendants()) do
-    MonitorUI(gui)
-end
-
--- Menerapkan fungsi monitor ke UI yang baru saja dibuat/ditambahkan oleh game
-LocalPlayer.PlayerGui.DescendantAdded:Connect(function(desc)
-    MonitorUI(desc)
-    if activeScanner and (desc:IsA("ScreenGui") or desc:IsA("Frame")) then
-        task.wait(0.1) -- Jeda sebentar memastikan properti termuat
-        if desc.Visible then
-            UIResult:Set({
-                Title = "⚡ Layar Baru Ditambahkan!",
-                Content = "Nama UI: " .. desc.Name
-            })
-        end
-    end
-end)
-
-
 -- ==========================================
--- TAB 2: AUTO CLICK CURSOR
+-- ISI TAB 2: AUTO CLICK CURSOR
 -- ==========================================
-local ClickTab = Window:CreateTab("Auto Click", 6536645908)
 local autoClicking = false
 local cps = 10
 
@@ -136,7 +94,7 @@ ClickTab:CreateSlider({
 })
 
 ClickTab:CreateToggle({
-    Name = "Aktifkan Auto Click (Di Posisi Kursor)",
+    Name = "Auto Click (Posisi Kursor)",
     CurrentValue = false,
     Flag = "ClickToggle",
     Callback = function(Value)
@@ -144,14 +102,14 @@ ClickTab:CreateToggle({
         if autoClicking then
             task.spawn(function()
                 while autoClicking do
-                    -- Mengeklik otomatis di tempat kursor Anda berada
-                    if mouse1click then
-                        mouse1click() -- Fungsi bawaan executor
-                    else
-                        -- Fallback jika executor tidak support mouse1click
-                        VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, true, game, 1)
-                        VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, false, game, 1)
-                    end
+                    pcall(function()
+                        if mouse1click then
+                            mouse1click()
+                        else
+                            VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, true, game, 1)
+                            VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, false, game, 1)
+                        end
+                    end)
                     task.wait(1 / cps)
                 end
             end)
@@ -159,21 +117,73 @@ ClickTab:CreateToggle({
     end,
 })
 
-
 -- ==========================================
--- TAB 3: SETTINGS & DESTROY GUI
+-- ISI TAB 3: SETTINGS & DESTROY GUI
 -- ==========================================
--- Tab baru khusus agar tombol Destroy gampang ditemukan
-local SettingsTab = Window:CreateTab("⚙️ Settings", 10734949856)
-
 SettingsTab:CreateButton({
     Name = "❌ DESTROY GUI (Tutup Script)",
     Callback = function()
-        -- Mematikan sistem background sebelum tutup
         autoClicking = false 
         activeScanner = false
-        
-        -- Menghapus seluruh GUI dari layar
         Rayfield:Destroy()
     end,
+})
+
+-- ==========================================
+-- LOGIKA SCANNER (DIPROSES DI BELAKANG)
+-- ==========================================
+local function MonitorUI(guiElement)
+    pcall(function()
+        if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
+            guiElement:GetPropertyChangedSignal("Visible"):Connect(function()
+                if activeScanner and guiElement.Visible then
+                    local path = guiElement.Name
+                    local parent = guiElement.Parent
+                    
+                    for i = 1, 3 do 
+                        if parent and parent ~= LocalPlayer:FindFirstChild("PlayerGui") and parent.Name ~= "PlayerGui" then
+                            path = parent.Name .. " -> " .. path
+                            parent = parent.Parent
+                        else
+                            break
+                        end
+                    end
+                    
+                    UIResult:Set({
+                        Title = "🔥 Menu Terdeteksi!",
+                        Content = "Nama UI: " .. guiElement.Name .. "\nPath: " .. path
+                    })
+                end
+            end)
+        end
+    end)
+end
+
+-- Menjalankan deteksi UI lama tanpa membuat script freeze
+task.spawn(function()
+    for _, gui in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetDescendants()) do
+        MonitorUI(gui)
+    end
+end)
+
+-- Menjalankan deteksi untuk UI yang baru muncul saat game berjalan
+LocalPlayer.PlayerGui.DescendantAdded:Connect(function(desc)
+    MonitorUI(desc)
+    pcall(function()
+        if activeScanner and (desc:IsA("ScreenGui") or desc:IsA("Frame")) then
+            task.wait(0.1)
+            if desc.Visible then
+                UIResult:Set({
+                    Title = "⚡ Layar Baru Ditambahkan!",
+                    Content = "Nama UI: " .. desc.Name
+                })
+            end
+        end
+    end)
+end)
+
+Rayfield:Notify({
+    Title = "Script Berhasil Dimuat",
+    Content = "Semua menu siap digunakan!",
+    Duration = 3
 })
