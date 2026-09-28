@@ -3,10 +3,12 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local GuiService = game:GetService("GuiService")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "TopUpHubCustomV5"
+HubGui.Name = "TopUpHubCustomV6"
 HubGui.ResetOnSpawn = false
+HubGui.IgnoreGuiInset = true -- [PENTING] Agar posisi bola 100% akurat tanpa terpotong menu atas
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
 if not HubGui.Parent then HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
@@ -69,7 +71,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "TopUp Hub | V5"
+Title.Text = "TopUp Hub | V6 (Akurat)"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -274,7 +276,7 @@ local function ProcessDetectedUI(guiElement)
         
         if not savedUIs[path] then
             savedUIs[path] = true
-            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI' untuk melihat."
+            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI'."
             TampilkanLabelDiLayar(guiElement)
             
             local btn = Instance.new("TextButton", HistoryScroll)
@@ -322,7 +324,7 @@ task.spawn(function()
 end)
 
 -- =======================================
--- KONTEN: AUTO CLICK (+ DETEKSI POPUP GLYPH)
+-- KONTEN: AUTO CLICK (+ DETEKSI GLYPH)
 -- =======================================
 local cpsValue = 10
 local autoClicking = false
@@ -359,9 +361,13 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
         task.spawn(function()
             while autoClicking do
                 pcall(function()
+                    -- Ambil nilai inset dinamis langsung dari sistem Roblox
+                    local guiInset, _ = GuiService:GetGuiInset()
+                    
                     -- 1. Klik Bola Target Utama
+                    -- Karena HubGui IgnoreGuiInset = true, maka posisinya tidak perlu ditambah Inset.
                     local targetX = TargetBall.AbsolutePosition.X + (TargetBall.AbsoluteSize.X / 2)
-                    local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2) + 36
+                    local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2)
                     TargetBall.Visible = false 
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, true, game, 1)
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, false, game, 1)
@@ -377,10 +383,11 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
                                 local hint = popup:FindFirstChild("Hint")
                                 if hint then
                                     local glyph = hint:FindFirstChild("Glyph")
-                                    -- Cek jika Glyph ada dan terlihat di layar
                                     if glyph and glyph.Visible then
                                         local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2)
-                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + 36
+                                        -- Karena Glyph kemungkinan terpengaruh UI game, kita pakai offset inset sistem.
+                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + guiInset.Y
+                                        
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, true, game, 1)
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, false, game, 1)
                                     end
