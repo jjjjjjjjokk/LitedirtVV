@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "LitedirtLiftACubeRichText"
+HubGui.Name = "LitedirtHubStable"
 HubGui.ResetOnSpawn = false
 HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
@@ -54,7 +54,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- =======================================
--- FRAME UTAMA UI (Litedirt | lift a cube)
+-- FRAME UTAMA UI
 -- =======================================
 local MainFrame = Instance.new("Frame", HubGui)
 MainFrame.Size = UDim2.new(0, 450, 0, 260)
@@ -71,8 +71,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "<b>LITEDIRT | LIFT A CUBE</b>" -- Menggunakan RichText <b> agar tebal sempurna di Roblox
-Title.RichText = true
+Title.Text = "LITEDIRT | LIFT A CUBE"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -143,8 +142,7 @@ local function CreateTabButton(name, posY)
     btn.Position = UDim2.new(0, 5, 0, posY)
     btn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = "<b>" .. name .. "</b>"
-    btn.RichText = true
+    btn.Text = name
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 11
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
@@ -175,13 +173,12 @@ TabAutoTrain.MouseButton1Click:Connect(function() PageHome.Visible = false; Page
 TabSet.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoClick.Visible = false; PageAutoTrain.Visible = false; PageSet.Visible = true; TargetBall.Visible = false end)
 
 -- =======================================
--- TAB 1: HOME (INFO LISENSI & AKUN)
+-- TAB 1: HOME
 -- =======================================
 local InfoLabel = Instance.new("TextLabel", PageHome)
 InfoLabel.Size = UDim2.new(1, 0, 1, 0)
 InfoLabel.BackgroundTransparency = 1
 InfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-InfoLabel.RichText = true
 InfoLabel.Font = Enum.Font.GothamBold
 InfoLabel.TextSize = 11
 InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -202,11 +199,11 @@ task.spawn(function()
     while task.wait(1) do
         local currentTime = os.date("%H:%M:%S")
         InfoLabel.Text = string.format(
-            "<b>📋 LISENSI STATUS: FREE (UNLOCKED)</b>\n\n" ..
-            "<b>👤 NAMA AKUN :</b> %s\n" ..
-            "<b>📅 AKUN DIBUAT:</b> %s (%d HARI)\n" ..
-            "<b>⚡ CLIENT TOOL :</b> %s\n" ..
-            "<b>⏰ WAKTU SERVER:</b> %s",
+            "LISENSI STATUS: FREE (UNLOCKED)\n\n" ..
+            "NAMA AKUN : %s\n" ..
+            "AKUN DIBUAT: %s (%d HARI)\n" ..
+            "CLIENT TOOL : %s\n" ..
+            "WAKTU SERVER: %s",
             LocalPlayer.Name,
             creationDate,
             accountAgeDays,
@@ -223,8 +220,7 @@ local ShowBallBtn = Instance.new("TextButton", PageAutoClick)
 ShowBallBtn.Size = UDim2.new(1, 0, 0, 35)
 ShowBallBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 ShowBallBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
-ShowBallBtn.Text = "<b>👁️ TAMPILKAN/SEMBUNYIKAN BOLA</b>"
-ShowBallBtn.RichText = true
+ShowBallBtn.Text = "TAMPILKAN/SEMBUNYIKAN BOLA"
 ShowBallBtn.Font = Enum.Font.GothamBold
 ShowBallBtn.TextSize = 11
 Instance.new("UICorner", ShowBallBtn)
@@ -238,8 +234,7 @@ ToggleBallBtn.Size = UDim2.new(1, 0, 0, 45)
 ToggleBallBtn.Position = UDim2.new(0, 0, 0, 45)
 ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleBallBtn.Text = "<b>🔴 AUTO CLICK OFF</b>"
-ToggleBallBtn.RichText = true
+ToggleBallBtn.Text = "AUTO CLICK OFF"
 ToggleBallBtn.Font = Enum.Font.GothamBold
 ToggleBallBtn.TextSize = 13
 Instance.new("UICorner", ToggleBallBtn)
@@ -251,7 +246,7 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     if autoBallRunning then
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleBallBtn.Text = "<b>🟢 AUTO CLICK ON</b>"
+        ToggleBallBtn.Text = "AUTO CLICK ON"
         
         task.spawn(function()
             while autoBallRunning do
@@ -270,7 +265,7 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     else
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleBallBtn.Text = "<b>🔴 AUTO CLICK OFF</b>"
+        ToggleBallBtn.Text = "AUTO CLICK OFF"
     end
 end)
 
@@ -281,8 +276,7 @@ local ToggleTrainBtn = Instance.new("TextButton", PageAutoTrain)
 ToggleTrainBtn.Size = UDim2.new(1, 0, 0, 45)
 ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleTrainBtn.Text = "<b>🔴 AUTO TRAIN OFF</b>"
-ToggleTrainBtn.RichText = true
+ToggleTrainBtn.Text = "AUTO TRAIN OFF"
 ToggleTrainBtn.Font = Enum.Font.GothamBold
 ToggleTrainBtn.TextSize = 13
 Instance.new("UICorner", ToggleTrainBtn)
@@ -296,14 +290,13 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
     if autoTrainRunning then
         ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
         ToggleTrainBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleTrainBtn.Text = "<b>🟢 AUTO TRAIN ON</b>"
+        ToggleTrainBtn.Text = "AUTO TRAIN ON"
         
         task.spawn(function()
             while autoTrainRunning do
                 pcall(function()
                     local pGui = LocalPlayer:FindFirstChild("PlayerGui")
                     if pGui then
-                        -- Proteksi Robux: Auto klik X jika muncul menu pembelian
                         local robuxPopup = pGui:FindFirstChild("PurchasePrompt") or pGui:FindFirstChild("RobuxPrompt") or pGui:FindFirstChild("Shop")
                         if robuxPopup then
                             local closeBtn = robuxPopup:FindFirstChild("Close") or robuxPopup:FindFirstChild("X") or robuxPopup:FindFirstChild("Exit")
@@ -316,7 +309,6 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
                             end
                         end
 
-                        -- Auto Train dengan Jeda Spawn
                         local overlay = pGui:FindFirstChild("Overlay")
                         if overlay then
                             local popup = overlay:FindFirstChild("POPUP")
@@ -344,7 +336,7 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
     else
         ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
         ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleTrainBtn.Text = "<b>🔴 AUTO TRAIN OFF</b>"
+        ToggleTrainBtn.Text = "AUTO TRAIN OFF"
     end
 end)
 
@@ -355,8 +347,7 @@ local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
 DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 DestroyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DestroyBtn.Text = "<b>❌ DESTROY GUI</b>"
-DestroyBtn.RichText = true
+DestroyBtn.Text = "DESTROY GUI"
 DestroyBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", DestroyBtn)
 
