@@ -3,10 +3,9 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local HttpService = game:GetService("HttpService")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "LitedirtLiftACubeHubV3"
+HubGui.Name = "LitedirtLiftACubeMathBold"
 HubGui.ResetOnSpawn = false
 HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
@@ -21,7 +20,7 @@ TargetBall.Position = UDim2.new(0.5, -20, 0.5, -20)
 TargetBall.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
 TargetBall.BackgroundTransparency = 0.5
 TargetBall.BorderSizePixel = 0
-TargetBall.Visible = false -- Default tersembunyi
+TargetBall.Visible = false
 TargetBall.Parent = HubGui
 Instance.new("UICorner", TargetBall).CornerRadius = UDim.new(1, 0)
 local BallStroke = Instance.new("UIStroke", TargetBall)
@@ -33,6 +32,7 @@ Crosshair.BackgroundTransparency = 1
 Crosshair.Text = "+"
 Crosshair.TextColor3 = Color3.fromRGB(255, 255, 255)
 Crosshair.TextSize = 25
+Crosshair.Font = Enum.Font.GothamBold
 
 local draggingBall, dragInputBall, dragStartBall, startPosBall
 TargetBall.InputBegan:Connect(function(input)
@@ -57,8 +57,8 @@ end)
 -- FRAME UTAMA UI (Litedirt | lift a cube)
 -- =======================================
 local MainFrame = Instance.new("Frame", HubGui)
-MainFrame.Size = UDim2.new(0, 450, 0, 280)
-MainFrame.Position = UDim2.new(0.5, -225, 0.6, -140)
+MainFrame.Size = UDim2.new(0, 450, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -225, 0.6, -130)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
@@ -71,7 +71,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Litedirt | lift a cube"
+Title.Text = "𝗟𝗶𝘁𝗲𝗱𝗶𝗿𝘁 | 𝗹𝗶𝗳𝘁 𝗮 𝗰𝘂𝗯𝗲" -- Math Sans Bold
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -84,6 +84,7 @@ CollapseBtn.BackgroundTransparency = 1
 CollapseBtn.Text = "➖"
 CollapseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CollapseBtn.TextSize = 14
+CollapseBtn.Font = Enum.Font.GothamBold
 
 local isCollapsed = false
 CollapseBtn.MouseButton1Click:Connect(function()
@@ -92,7 +93,7 @@ CollapseBtn.MouseButton1Click:Connect(function()
         MainFrame:TweenSize(UDim2.new(0, 450, 0, 30), "Out", "Quad", 0.3, true)
         CollapseBtn.Text = "➕"
     else
-        MainFrame:TweenSize(UDim2.new(0, 450, 0, 280), "Out", "Quad", 0.3, true)
+        MainFrame:TweenSize(UDim2.new(0, 450, 0, 260), "Out", "Quad", 0.3, true)
         CollapseBtn.Text = "➖"
     end
 end)
@@ -123,7 +124,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- =======================================
--- TABS & KONTEN (HOME & AUTOFARM)
+-- TABS & KONTEN
 -- =======================================
 local TabContainer = Instance.new("Frame", MainFrame)
 TabContainer.Size = UDim2.new(0, 110, 1, -32)
@@ -137,20 +138,21 @@ ContentContainer.BackgroundTransparency = 1
 
 local function CreateTabButton(name, posY)
     local btn = Instance.new("TextButton", TabContainer)
-    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.Size = UDim2.new(1, -10, 0, 26)
     btn.Position = UDim2.new(0, 5, 0, posY)
     btn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = name
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     return btn
 end
 
-local TabHome = CreateTabButton("1. Home", 5)
-local TabAutoFarm = CreateTabButton("2. AutoFarm", 40)
-local TabSet = CreateTabButton("3. Settings", 75)
+local TabHome = CreateTabButton("𝟭. 𝗛𝗼𝗺𝗲", 5)
+local TabAutoClick = CreateTabButton("𝟮. 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸", 35)
+local TabAutoTrain = CreateTabButton("𝟯. 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻", 65)
+local TabSet = CreateTabButton("𝟰. 𝗦𝗲𝘁𝘁𝗶𝗻𝗴𝘀", 95)
 
 local function CreatePage()
     local page = Instance.new("Frame", ContentContainer)
@@ -161,51 +163,47 @@ local function CreatePage()
 end
 
 local PageHome = CreatePage(); PageHome.Visible = true
-local PageAutoFarm = CreatePage()
+local PageAutoClick = CreatePage()
+local PageAutoTrain = CreatePage()
 local PageSet = CreatePage()
 
-TabHome.MouseButton1Click:Connect(function() PageHome.Visible = true; PageAutoFarm.Visible = false; PageSet.Visible = false end)
-TabAutoFarm.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoFarm.Visible = true; PageSet.Visible = false end)
-TabSet.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoFarm.Visible = false; PageSet.Visible = true end)
+TabHome.MouseButton1Click:Connect(function() PageHome.Visible = true; PageAutoClick.Visible = false; PageAutoTrain.Visible = false; PageSet.Visible = false; TargetBall.Visible = false end)
+TabAutoClick.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoClick.Visible = true; PageAutoTrain.Visible = false; PageSet.Visible = false end)
+TabAutoTrain.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoClick.Visible = false; PageAutoTrain.Visible = true; PageSet.Visible = false; TargetBall.Visible = false end)
+TabSet.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoClick.Visible = false; PageAutoTrain.Visible = false; PageSet.Visible = true; TargetBall.Visible = false end)
 
 -- =======================================
--- TAB 1: HOME (INFO LISENSI & AKUN)
+-- TAB 1: HOME (INFO LISENSI & AKUN - MATH BOLD)
 -- =======================================
 local InfoLabel = Instance.new("TextLabel", PageHome)
 InfoLabel.Size = UDim2.new(1, 0, 1, 0)
 InfoLabel.BackgroundTransparency = 1
 InfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-InfoLabel.Font = Enum.Font.Gotham
-InfoLabel.TextSize = 12
+InfoLabel.Font = Enum.Font.GothamBold
+InfoLabel.TextSize = 11
 InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
 InfoLabel.TextYAlignment = Enum.TextYAlignment.Top
 InfoLabel.TextWrapped = true
 
--- Mendapatkan informasi client executor
-local executorName = "Unknown Executor"
+local executorName = "𝗨𝗻𝗸𝗻𝗼𝘄𝗻 𝗘𝘅𝗲𝗰𝘂𝘁𝗼𝗿"
 pcall(function()
-    if identifyexecutor then
-        executorName = identifyexecutor()
-    elseif getexecutorname then
-        executorName = getexecutorname()
-    end
+    if identifyexecutor then executorName = identifyexecutor()
+    elseif getexecutorname then executorName = getexecutorname() end
 end)
 
--- Mendapatkan tanggal pembuatan akun Roblox
 local accountAgeDays = LocalPlayer.AccountAge
 local creationTimestamp = os.time() - (accountAgeDays * 86400)
 local creationDate = os.date("%d-%m-%Y", creationTimestamp)
 
--- Update Jam dan Info secara Live
 task.spawn(function()
     while task.wait(1) do
         local currentTime = os.date("%H:%M:%S")
         InfoLabel.Text = string.format(
-            "📋 LISENSI STATUS: FREE (UNLOCKED)\n\n" ..
-            "👤 Nama Akun : %s\n" ..
-            "📅 Akun Dibuat: %s (%d Hari)\n" ..
-            "⚡ Client Tool : %s\n" ..
-            "⏰ Waktu Server: %s",
+            "📋 𝗟𝗜𝗦𝗘𝗡𝗦𝗜 𝗦𝗧𝗔𝗧𝗨𝗦: 𝗙𝗥𝗘𝗘 (𝗨𝗡𝗟𝗢𝗖𝗞𝗘𝗗)\n\n" ..
+            "👤 𝗡𝗮𝗺𝗮 𝗔𝗸𝘂𝗻 : %s\n" ..
+            "📅 𝗔𝗸𝘂𝗻 𝗗𝗶𝗯𝘂𝗮𝘁: %s (%d 𝗛𝗮𝗿𝗶)\n" ..
+            "⚡ 𝗖𝗹𝗶𝗲𝗻𝘁 𝗧𝗼𝗼𝗹 : %s\n" ..
+            "⏰ 𝗪𝗮𝗸𝘁𝘂 𝗦𝗲𝗿𝘃𝗲𝗿: %s",
             LocalPlayer.Name,
             creationDate,
             accountAgeDays,
@@ -216,31 +214,14 @@ task.spawn(function()
 end)
 
 -- =======================================
--- TAB 2: AUTOFARM (DENGAN TOMBOL BOLA TERPISAH)
+-- TAB 2: AUTO CLICK (MATH BOLD)
 -- =======================================
-local AFScroll = Instance.new("ScrollingFrame", PageAutoFarm)
-AFScroll.Size = UDim2.new(1, 0, 1, 0)
-AFScroll.BackgroundTransparency = 1
-AFScroll.ScrollBarThickness = 4
-AFScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-local AFLayout = Instance.new("UIListLayout", AFScroll)
-AFLayout.Padding = UDim.new(0, 8)
-
--- 1. Tombol Munculkan Bola Target
-local TitleBall = Instance.new("TextLabel", AFScroll)
-TitleBall.Size = UDim2.new(1, 0, 0, 20)
-TitleBall.BackgroundTransparency = 1
-TitleBall.Text = "--- AUTO TARGET (BOLA) ---"
-TitleBall.TextColor3 = Color3.fromRGB(0, 255, 255)
-TitleBall.Font = Enum.Font.GothamBold
-TitleBall.TextSize = 12
-
-local ShowBallBtn = Instance.new("TextButton", AFScroll)
-ShowBallBtn.Size = UDim2.new(1, 0, 0, 30)
+local ShowBallBtn = Instance.new("TextButton", PageAutoClick)
+ShowBallBtn.Size = UDim2.new(1, 0, 0, 35)
 ShowBallBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 ShowBallBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
-ShowBallBtn.Text = "👁️ Tampilkan/Sembunyikan Bola"
-ShowBallBtn.Font = Enum.Font.GothamSemibold
+ShowBallBtn.Text = "👁️ 𝗧𝗮𝗺𝗽𝗶𝗹𝗸𝗮𝗻/𝗦𝗲𝗺𝗯𝘂𝗻𝘆𝗶𝗸𝗮𝗻 𝗕𝗼𝗹𝗮"
+ShowBallBtn.Font = Enum.Font.GothamBold
 ShowBallBtn.TextSize = 12
 Instance.new("UICorner", ShowBallBtn)
 
@@ -248,13 +229,14 @@ ShowBallBtn.MouseButton1Click:Connect(function()
     TargetBall.Visible = not TargetBall.Visible
 end)
 
-local ToggleBallBtn = Instance.new("TextButton", AFScroll)
-ToggleBallBtn.Size = UDim2.new(1, 0, 0, 35)
+local ToggleBallBtn = Instance.new("TextButton", PageAutoClick)
+ToggleBallBtn.Size = UDim2.new(1, 0, 0, 45)
+ToggleBallBtn.Position = UDim2.new(0, 0, 0, 45)
 ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleBallBtn.Text = "🔴 Auto Target OFF"
+ToggleBallBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗙𝗙"
 ToggleBallBtn.Font = Enum.Font.GothamBold
-ToggleBallBtn.TextSize = 12
+ToggleBallBtn.TextSize = 13
 Instance.new("UICorner", ToggleBallBtn)
 
 local cpsBall = 10
@@ -264,7 +246,7 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     if autoBallRunning then
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleBallBtn.Text = "🟢 Auto Target ON"
+        ToggleBallBtn.Text = "🟢 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗡"
         
         task.spawn(function()
             while autoBallRunning do
@@ -283,73 +265,39 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     else
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleBallBtn.Text = "🔴 Auto Target OFF"
+        ToggleBallBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗙𝗙"
     end
 end)
 
--- 2. Bagian Auto Glyph & Train
-local TitleGlyph = Instance.new("TextLabel", AFScroll)
-TitleGlyph.Size = UDim2.new(1, 0, 0, 20)
-TitleGlyph.BackgroundTransparency = 1
-TitleGlyph.Text = "--- AUTO GLYPH & TRAIN ---"
-TitleGlyph.TextColor3 = Color3.fromRGB(0, 255, 255)
-TitleGlyph.Font = Enum.Font.GothamBold
-TitleGlyph.TextSize = 12
+-- =======================================
+-- TAB 3: AUTO TRAIN (MATH BOLD)
+-- =======================================
+local ToggleTrainBtn = Instance.new("TextButton", PageAutoTrain)
+ToggleTrainBtn.Size = UDim2.new(1, 0, 0, 45)
+ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+ToggleTrainBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗙𝗙"
+ToggleTrainBtn.Font = Enum.Font.GothamBold
+ToggleTrainBtn.TextSize = 13
+Instance.new("UICorner", ToggleTrainBtn)
 
-local glyphOffsetX = 50 
-local glyphOffsetY = 50 
+local autoTrainRunning = false
+local trainOffsetX = 50 
+local trainOffsetY = 50 
 
-local OffsetXInput = Instance.new("TextBox", AFScroll)
-OffsetXInput.Size = UDim2.new(1, 0, 0, 30)
-OffsetXInput.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-OffsetXInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-OffsetXInput.Text = "Offset X: 50"
-OffsetXInput.Font = Enum.Font.Gotham
-OffsetXInput.TextSize = 12
-Instance.new("UICorner", OffsetXInput)
-OffsetXInput.FocusLost:Connect(function()
-    local val = tonumber(string.match(OffsetXInput.Text, "-?%d+"))
-    if val then glyphOffsetX = val end
-    OffsetXInput.Text = "Offset X: " .. tostring(glyphOffsetX)
-end)
-
-local OffsetYInput = Instance.new("TextBox", AFScroll)
-OffsetYInput.Size = UDim2.new(1, 0, 0, 30)
-OffsetYInput.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-OffsetYInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-OffsetYInput.Text = "Offset Y: 50"
-OffsetYInput.Font = Enum.Font.Gotham
-OffsetYInput.TextSize = 12
-Instance.new("UICorner", OffsetYInput)
-OffsetYInput.FocusLost:Connect(function()
-    local val = tonumber(string.match(OffsetYInput.Text, "-?%d+"))
-    if val then glyphOffsetY = val end
-    OffsetYInput.Text = "Offset Y: " .. tostring(glyphOffsetY)
-end)
-
-local ToggleGlyphBtn = Instance.new("TextButton", AFScroll)
-ToggleGlyphBtn.Size = UDim2.new(1, 0, 0, 35)
-ToggleGlyphBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-ToggleGlyphBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleGlyphBtn.Text = "🔴 Auto Glyph & Train OFF"
-ToggleGlyphBtn.Font = Enum.Font.GothamBold
-ToggleGlyphBtn.TextSize = 12
-Instance.new("UICorner", ToggleGlyphBtn)
-
-local autoGlyphRunning = false
-ToggleGlyphBtn.MouseButton1Click:Connect(function()
-    autoGlyphRunning = not autoGlyphRunning
-    if autoGlyphRunning then
-        ToggleGlyphBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
-        ToggleGlyphBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleGlyphBtn.Text = "🟢 Auto Glyph & Train ON"
+ToggleTrainBtn.MouseButton1Click:Connect(function()
+    autoTrainRunning = not autoTrainRunning
+    if autoTrainRunning then
+        ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
+        ToggleTrainBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
+        ToggleTrainBtn.Text = "🟢 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗡"
         
         task.spawn(function()
-            while autoGlyphRunning do
+            while autoTrainRunning do
                 pcall(function()
                     local pGui = LocalPlayer:FindFirstChild("PlayerGui")
                     if pGui then
-                        -- Proteksi Robux: Auto klik X jika menu pembelian muncul
+                        -- Proteksi Robux: Auto klik X jika muncul menu pembelian
                         local robuxPopup = pGui:FindFirstChild("PurchasePrompt") or pGui:FindFirstChild("RobuxPrompt") or pGui:FindFirstChild("Shop")
                         if robuxPopup then
                             local closeBtn = robuxPopup:FindFirstChild("Close") or robuxPopup:FindFirstChild("X") or robuxPopup:FindFirstChild("Exit")
@@ -362,7 +310,7 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
                             end
                         end
 
-                        -- Auto Glyph & Train dengan Jeda Spawn
+                        -- Auto Train dengan Jeda Spawn
                         local overlay = pGui:FindFirstChild("Overlay")
                         if overlay then
                             local popup = overlay:FindFirstChild("POPUP")
@@ -371,8 +319,8 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
                                 if hint then
                                     local glyph = hint:FindFirstChild("Glyph")
                                     if glyph and glyph.AbsoluteSize.X > 0 and glyph.Visible then
-                                        local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2) + glyphOffsetX
-                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + glyphOffsetY
+                                        local gX = glyph.AbsolutePosition.X + (glyph.AbsoluteSize.X / 2) + trainOffsetX
+                                        local gY = glyph.AbsolutePosition.Y + (glyph.AbsoluteSize.Y / 2) + trainOffsetY
                                         
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, true, game, 1)
                                         VirtualInputManager:SendMouseButtonEvent(gX, gY, 0, false, game, 1)
@@ -388,26 +336,26 @@ ToggleGlyphBtn.MouseButton1Click:Connect(function()
             end
         end)
     else
-        ToggleGlyphBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
-        ToggleGlyphBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleGlyphBtn.Text = "🔴 Auto Glyph & Train OFF"
+        ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+        ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        ToggleTrainBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗙𝗙"
     end
 end)
 
 -- =======================================
--- TAB 3: SETTINGS
+-- TAB 4: SETTINGS (MATH BOLD)
 -- =======================================
 local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
 DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 DestroyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DestroyBtn.Text = "❌ DESTROY GUI"
+DestroyBtn.Text = "❌ 𝗗𝗘𝗦𝗧𝗥𝗢𝗬 𝗚𝗨𝗜"
 DestroyBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", DestroyBtn)
 
 DestroyBtn.MouseButton1Click:Connect(function()
     autoBallRunning = false
-    autoGlyphRunning = false
+    autoTrainRunning = false
     TargetBall:Destroy()
     HubGui:Destroy()
 end)
