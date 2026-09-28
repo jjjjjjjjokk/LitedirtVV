@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "TopUpHubCustomV3"
+HubGui.Name = "TopUpHubCustomV4"
 HubGui.ResetOnSpawn = false
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
 if not HubGui.Parent then HubGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
@@ -38,9 +38,7 @@ TargetBall.InputBegan:Connect(function(input)
         draggingBall = true
         dragStartBall = input.Position
         startPosBall = TargetBall.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then draggingBall = false end
-        end)
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then draggingBall = false end end)
     end
 end)
 TargetBall.InputChanged:Connect(function(input)
@@ -71,7 +69,7 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "TopUp Hub | V3"
+Title.Text = "TopUp Hub | V4 (Visual)"
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -180,17 +178,14 @@ TabClick.MouseButton1Click:Connect(function() SwitchTab(PageClick, true) end)
 TabSet.MouseButton1Click:Connect(function() SwitchTab(PageSet, false) end)
 
 -- =======================================
--- KONTEN: RIWAYAT UI (TAB BARU)
+-- KONTEN: RIWAYAT UI
 -- =======================================
 local HistoryScroll = Instance.new("ScrollingFrame", PageHistory)
 HistoryScroll.Size = UDim2.new(1, 0, 1, 0)
 HistoryScroll.BackgroundTransparency = 1
 HistoryScroll.ScrollBarThickness = 4
-HistoryScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 HistoryScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
 local HistoryLayout = Instance.new("UIListLayout", HistoryScroll)
-HistoryLayout.SortOrder = Enum.SortOrder.LayoutOrder
 HistoryLayout.Padding = UDim.new(0, 5)
 
 local savedUIs = {}
@@ -241,16 +236,53 @@ local function GetFullPath(obj)
     return "PlayerGui." .. path
 end
 
+-- Fungsi memunculkan Teks di layar pas di tengah/bawah menu
+local function TampilkanLabelDiLayar(guiElement)
+    pcall(function()
+        local labelMarker = Instance.new("TextLabel")
+        labelMarker.Parent = HubGui
+        labelMarker.Size = UDim2.new(0, 250, 0, 40)
+        labelMarker.BackgroundTransparency = 0.3
+        labelMarker.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        labelMarker.TextColor3 = Color3.fromRGB(0, 255, 255)
+        labelMarker.TextStrokeTransparency = 0
+        labelMarker.Font = Enum.Font.GothamBlack
+        labelMarker.TextSize = 16
+        labelMarker.Text = "NAMA UI: " .. guiElement.Name
+        labelMarker.ZIndex = 100
+        Instance.new("UICorner", labelMarker).CornerRadius = UDim.new(0, 8)
+        
+        -- Cari posisi dari menu popup-nya
+        if guiElement:IsA("GuiObject") then
+            local absPos = guiElement.AbsolutePosition
+            local absSize = guiElement.AbsoluteSize
+            -- Letakkan agak ke bawah tengah dari menu itu
+            labelMarker.Position = UDim2.new(0, absPos.X + (absSize.X / 2) - 125, 0, absPos.Y + (absSize.Y / 2) + (absSize.Y / 3))
+        else
+            -- Kalau tidak dapat posisinya, taruh di bawah tengah layar
+            labelMarker.Position = UDim2.new(0.5, -125, 0.8, 0)
+        end
+
+        -- Hancurkan tulisan setelah 4 detik
+        task.delay(4, function()
+            if labelMarker then labelMarker:Destroy() end
+        end)
+    end)
+end
+
 local function ProcessDetectedUI(guiElement)
     if not activeScanner then return end
     if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
-        if guiElement.Name == "TopUpHubCustomV3" then return end -- Abaikan UI sendiri
+        if guiElement.Name == "TopUpHubCustomV4" then return end 
         
         local path = GetFullPath(guiElement)
         
         if not savedUIs[path] then
             savedUIs[path] = true
-            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI' untuk melihat."
+            ScanResult.Text = "🔥 POPUP TERDETEKSI!\nNama: " .. guiElement.Name .. "\nBuka tab 'Riwayat UI' untuk melihat/copy."
+            
+            -- Memunculkan Label Nama Visual di layar
+            TampilkanLabelDiLayar(guiElement)
             
             -- Buat tombol di tab riwayat
             local btn = Instance.new("TextButton", HistoryScroll)
@@ -264,15 +296,14 @@ local function ProcessDetectedUI(guiElement)
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
             
             btn.MouseButton1Click:Connect(function()
-                ScanResult.Text = "Path Dipilih:\n" .. path
+                ScanResult.Text = "Path Dipilih (Siap di copy):\n" .. path
                 SwitchTab(PageScan, false)
-                pcall(function() setclipboard(path) end) -- Copy ke clipboard jika disupport executor
+                pcall(function() setclipboard(path) end) 
             end)
         end
     end
 end
 
--- Deteksi jika UI baru dikloning ke layar (Mendeteksi popup dinamis)
 LocalPlayer.PlayerGui.DescendantAdded:Connect(function(desc)
     pcall(function()
         task.wait(0.1)
@@ -284,7 +315,6 @@ LocalPlayer.PlayerGui.DescendantAdded:Connect(function(desc)
     end)
 end)
 
--- Deteksi jika UI yang sudah ada berganti visibility
 local function MonitorExisting(guiElement)
     pcall(function()
         if guiElement:IsA("GuiObject") or guiElement:IsA("ScreenGui") then
@@ -296,9 +326,7 @@ local function MonitorExisting(guiElement)
 end
 
 task.spawn(function()
-    for _, gui in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetDescendants()) do
-        MonitorExisting(gui)
-    end
+    for _, gui in pairs(LocalPlayer:WaitForChild("PlayerGui"):GetDescendants()) do MonitorExisting(gui) end
 end)
 
 -- =======================================
@@ -340,7 +368,7 @@ ToggleClickBtn.MouseButton1Click:Connect(function()
             while autoClicking do
                 pcall(function()
                     local targetX = TargetBall.AbsolutePosition.X + (TargetBall.AbsoluteSize.X / 2)
-                    local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2) + 36 -- Koreksi offset bar atas
+                    local targetY = TargetBall.AbsolutePosition.Y + (TargetBall.AbsoluteSize.Y / 2) + 36
                     TargetBall.Visible = false 
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, true, game, 1)
                     VirtualInputManager:SendMouseButtonEvent(targetX, targetY, 0, false, game, 1)
