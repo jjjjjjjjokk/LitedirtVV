@@ -5,7 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local HubGui = Instance.new("ScreenGui")
-HubGui.Name = "LitedirtLiftACubeMathBold"
+HubGui.Name = "LitedirtLiftACubeRichText"
 HubGui.ResetOnSpawn = false
 HubGui.IgnoreGuiInset = true
 pcall(function() HubGui.Parent = game:GetService("CoreGui") end)
@@ -71,7 +71,8 @@ local Title = Instance.new("TextLabel", MainFrame)
 Title.Size = UDim2.new(1, -40, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "𝗟𝗶𝘁𝗲𝗱𝗶𝗿𝘁 | 𝗹𝗶𝗳𝘁 𝗮 𝗰𝘂𝗯𝗲" -- Math Sans Bold
+Title.Text = "<b>LITEDIRT | LIFT A CUBE</b>" -- Menggunakan RichText <b> agar tebal sempurna di Roblox
+Title.RichText = true
 Title.TextColor3 = Color3.fromRGB(0, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextSize = 16
@@ -142,17 +143,18 @@ local function CreateTabButton(name, posY)
     btn.Position = UDim2.new(0, 5, 0, posY)
     btn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = name
+    btn.Text = "<b>" .. name .. "</b>"
+    btn.RichText = true
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 11
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
     return btn
 end
 
-local TabHome = CreateTabButton("𝟭. 𝗛𝗼𝗺𝗲", 5)
-local TabAutoClick = CreateTabButton("𝟮. 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸", 35)
-local TabAutoTrain = CreateTabButton("𝟯. 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻", 65)
-local TabSet = CreateTabButton("𝟰. 𝗦𝗲𝘁𝘁𝗶𝗻𝗴𝘀", 95)
+local TabHome = CreateTabButton("1. HOME", 5)
+local TabAutoClick = CreateTabButton("2. AUTO CLICK", 35)
+local TabAutoTrain = CreateTabButton("3. AUTO TRAIN", 65)
+local TabSet = CreateTabButton("4. SETTINGS", 95)
 
 local function CreatePage()
     local page = Instance.new("Frame", ContentContainer)
@@ -173,19 +175,20 @@ TabAutoTrain.MouseButton1Click:Connect(function() PageHome.Visible = false; Page
 TabSet.MouseButton1Click:Connect(function() PageHome.Visible = false; PageAutoClick.Visible = false; PageAutoTrain.Visible = false; PageSet.Visible = true; TargetBall.Visible = false end)
 
 -- =======================================
--- TAB 1: HOME (INFO LISENSI & AKUN - MATH BOLD)
+-- TAB 1: HOME (INFO LISENSI & AKUN)
 -- =======================================
 local InfoLabel = Instance.new("TextLabel", PageHome)
 InfoLabel.Size = UDim2.new(1, 0, 1, 0)
 InfoLabel.BackgroundTransparency = 1
 InfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+InfoLabel.RichText = true
 InfoLabel.Font = Enum.Font.GothamBold
 InfoLabel.TextSize = 11
 InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
 InfoLabel.TextYAlignment = Enum.TextYAlignment.Top
 InfoLabel.TextWrapped = true
 
-local executorName = "𝗨𝗻𝗸𝗻𝗼𝘄𝗻 𝗘𝘅𝗲𝗰𝘂𝘁𝗼𝗿"
+local executorName = "UNKNOWN EXECUTOR"
 pcall(function()
     if identifyexecutor then executorName = identifyexecutor()
     elseif getexecutorname then executorName = getexecutorname() end
@@ -199,11 +202,11 @@ task.spawn(function()
     while task.wait(1) do
         local currentTime = os.date("%H:%M:%S")
         InfoLabel.Text = string.format(
-            "📋 𝗟𝗜𝗦𝗘𝗡𝗦𝗜 𝗦𝗧𝗔𝗧𝗨𝗦: 𝗙𝗥𝗘𝗘 (𝗨𝗡𝗟𝗢𝗖𝗞𝗘𝗗)\n\n" ..
-            "👤 𝗡𝗮𝗺𝗮 𝗔𝗸𝘂𝗻 : %s\n" ..
-            "📅 𝗔𝗸𝘂𝗻 𝗗𝗶𝗯𝘂𝗮𝘁: %s (%d 𝗛𝗮𝗿𝗶)\n" ..
-            "⚡ 𝗖𝗹𝗶𝗲𝗻𝘁 𝗧𝗼𝗼𝗹 : %s\n" ..
-            "⏰ 𝗪𝗮𝗸𝘁𝘂 𝗦𝗲𝗿𝘃𝗲𝗿: %s",
+            "<b>📋 LISENSI STATUS: FREE (UNLOCKED)</b>\n\n" ..
+            "<b>👤 NAMA AKUN :</b> %s\n" ..
+            "<b>📅 AKUN DIBUAT:</b> %s (%d HARI)\n" ..
+            "<b>⚡ CLIENT TOOL :</b> %s\n" ..
+            "<b>⏰ WAKTU SERVER:</b> %s",
             LocalPlayer.Name,
             creationDate,
             accountAgeDays,
@@ -214,15 +217,16 @@ task.spawn(function()
 end)
 
 -- =======================================
--- TAB 2: AUTO CLICK (MATH BOLD)
+-- TAB 2: AUTO CLICK
 -- =======================================
 local ShowBallBtn = Instance.new("TextButton", PageAutoClick)
 ShowBallBtn.Size = UDim2.new(1, 0, 0, 35)
 ShowBallBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 ShowBallBtn.TextColor3 = Color3.fromRGB(0, 255, 255)
-ShowBallBtn.Text = "👁️ 𝗧𝗮𝗺𝗽𝗶𝗹𝗸𝗮𝗻/𝗦𝗲𝗺𝗯𝘂𝗻𝘆𝗶𝗸𝗮𝗻 𝗕𝗼𝗹𝗮"
+ShowBallBtn.Text = "<b>👁️ TAMPILKAN/SEMBUNYIKAN BOLA</b>"
+ShowBallBtn.RichText = true
 ShowBallBtn.Font = Enum.Font.GothamBold
-ShowBallBtn.TextSize = 12
+ShowBallBtn.TextSize = 11
 Instance.new("UICorner", ShowBallBtn)
 
 ShowBallBtn.MouseButton1Click:Connect(function()
@@ -234,7 +238,8 @@ ToggleBallBtn.Size = UDim2.new(1, 0, 0, 45)
 ToggleBallBtn.Position = UDim2.new(0, 0, 0, 45)
 ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleBallBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗙𝗙"
+ToggleBallBtn.Text = "<b>🔴 AUTO CLICK OFF</b>"
+ToggleBallBtn.RichText = true
 ToggleBallBtn.Font = Enum.Font.GothamBold
 ToggleBallBtn.TextSize = 13
 Instance.new("UICorner", ToggleBallBtn)
@@ -246,7 +251,7 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     if autoBallRunning then
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleBallBtn.Text = "🟢 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗡"
+        ToggleBallBtn.Text = "<b>🟢 AUTO CLICK ON</b>"
         
         task.spawn(function()
             while autoBallRunning do
@@ -265,18 +270,19 @@ ToggleBallBtn.MouseButton1Click:Connect(function()
     else
         ToggleBallBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
         ToggleBallBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleBallBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗖𝗹𝗶𝗰𝗸 𝗢𝗙𝗙"
+        ToggleBallBtn.Text = "<b>🔴 AUTO CLICK OFF</b>"
     end
 end)
 
 -- =======================================
--- TAB 3: AUTO TRAIN (MATH BOLD)
+-- TAB 3: AUTO TRAIN
 -- =======================================
 local ToggleTrainBtn = Instance.new("TextButton", PageAutoTrain)
 ToggleTrainBtn.Size = UDim2.new(1, 0, 0, 45)
 ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
 ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-ToggleTrainBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗙𝗙"
+ToggleTrainBtn.Text = "<b>🔴 AUTO TRAIN OFF</b>"
+ToggleTrainBtn.RichText = true
 ToggleTrainBtn.Font = Enum.Font.GothamBold
 ToggleTrainBtn.TextSize = 13
 Instance.new("UICorner", ToggleTrainBtn)
@@ -290,7 +296,7 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
     if autoTrainRunning then
         ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 20)
         ToggleTrainBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
-        ToggleTrainBtn.Text = "🟢 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗡"
+        ToggleTrainBtn.Text = "<b>🟢 AUTO TRAIN ON</b>"
         
         task.spawn(function()
             while autoTrainRunning do
@@ -338,18 +344,19 @@ ToggleTrainBtn.MouseButton1Click:Connect(function()
     else
         ToggleTrainBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
         ToggleTrainBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        ToggleTrainBtn.Text = "🔴 𝗔𝘂𝘁𝗼 𝗧𝗿𝗮𝗶𝗻 𝗢𝗙𝗙"
+        ToggleTrainBtn.Text = "<b>🔴 AUTO TRAIN OFF</b>"
     end
 end)
 
 -- =======================================
--- TAB 4: SETTINGS (MATH BOLD)
+-- TAB 4: SETTINGS
 -- =======================================
 local DestroyBtn = Instance.new("TextButton", PageSet)
 DestroyBtn.Size = UDim2.new(1, 0, 0, 45)
 DestroyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 DestroyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DestroyBtn.Text = "❌ 𝗗𝗘𝗦𝗧𝗥𝗢𝗬 𝗚𝗨𝗜"
+DestroyBtn.Text = "<b>❌ DESTROY GUI</b>"
+DestroyBtn.RichText = true
 DestroyBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", DestroyBtn)
 
