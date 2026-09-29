@@ -1,6 +1,4 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/fluent.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/dist/main.lua"))()
 
 local currentLang = "EN"
 local texts = {
@@ -33,20 +31,20 @@ local texts = {
         title = "LITEDIRT | KEYLESS | RIDE STORM",
         tabTP = "🌍 Locais de Teleporte",
         tabSet = "⚙️ Configurações",
-        nameInput = "Nome do Item / Local",
+        nameInput = "Nome do Local",
         namePlaceholder = "Digite o nome...",
         coordInput = "Coordenadas (X, Y, Z)",
         coordPlaceholder = "Ex: 0, 100, 0",
-        getPos = "📍 Obter Posição Atual",
+        getPos = "📍 Obter Posição",
         save = "💾 Salvar Local",
         savedSec = "Locais Salvos",
-        holdInput = "Segurar Auto E (segundos)",
-        delayInput = "Atraso Auto E (segundos)",
+        holdInput = "Segurar Auto E (seg)",
+        delayInput = "Atraso Auto E (seg)",
         autoE = "Auto E",
-        autoTPDelay = "Atraso Auto TP (segundos)",
+        autoTPDelay = "Atraso Auto TP (seg)",
         autoTP = "Auto TP",
         preset = "📦 Carregar Preset: Ride Storm",
-        langLabel = "🌐 Language / Bahasa / Idioma",
+        langLabel = "🌐 Idioma",
         notifSuccess = "Sucesso",
         notifPos = "Posição Capturada!",
         notifSaved = "Salvo",
@@ -57,7 +55,7 @@ local texts = {
     ID = {
         title = "LITEDIRT | KEYLESS | RIDE STORM",
         tabTP = "🌍 Lokasi Teleport",
-        tabSet = "⚙️️ Pengaturan",
+        tabSet = "⚙ Pengaturan",
         nameInput = "Nama Item / Lokasi",
         namePlaceholder = "Masukkan nama...",
         coordInput = "Kordinat (X, Y, Z)",
@@ -71,7 +69,7 @@ local texts = {
         autoTPDelay = "Jeda Auto TP (detik)",
         autoTP = "Auto TP",
         preset = "📦 Load Preset: Ride Storm",
-        langLabel = "🌐 Language / Bahasa / Idioma",
+        langLabel = "🌐 Bahasa",
         notifSuccess = "Berhasil",
         notifPos = "Posisi Berhasil Diambil!",
         notifSaved = "Disimpan",
@@ -85,19 +83,21 @@ local function t(key)
     return texts[currentLang][key] or texts["EN"][key] or key
 end
 
-local Window = Fluent:CreateWindow({
+-- Create Window
+local Window = WindUI:CreateWindow({
     Title = t("title"),
-    SubTitle = "by Community (Fluent UI)",
-    TabWidth = 160,
+    Icon = "globe",
+    Author = "by Community",
+    Folder = "LitedirtConfig",
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
+    Transparent = true,
+    Resizable = true,
 })
 
 local Tabs = {
-    TP = Window:AddTab({ Title = t("tabTP"), Icon = "globe" }),
-    Settings = Window:AddTab({ Title = t("tabSet"), Icon = "settings" })
+    TP = Window:Tab({ Title = t("tabTP"), Icon = "map-pin" }),
+    Settings = Window:Tab({ Title = t("tabSet"), Icon = "settings" })
 }
 
 local HttpService = game:GetService("HttpService")
@@ -132,59 +132,48 @@ muatData()
 local inputNama = ""
 local inputCoord = ""
 
-Tabs.TP:AddInput("InputNama", {
+Tabs.TP:Input({
     Title = t("nameInput"),
-    Default = "",
     Placeholder = t("namePlaceholder"),
-    Numeric = false,
-    Finished = false,
-    Callback = function(Value)
-        inputNama = Value
+    Callback = function(text)
+        inputNama = text
     end
 })
 
-Tabs.TP:AddInput("InputCoord", {
+Tabs.TP:Input({
     Title = t("coordInput"),
-    Default = "",
     Placeholder = t("coordPlaceholder"),
-    Numeric = false,
-    Finished = false,
-    Callback = function(Value)
-        inputCoord = Value
+    Callback = function(text)
+        inputCoord = text
     end
 })
 
-Tabs.TP:AddButton({
+Tabs.TP:Button({
     Title = t("getPos"),
-    Description = "",
     Callback = function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local pos = LocalPlayer.Character.HumanoidRootPart.Position
             inputCoord = string.format("%.1f, %.1f, %.1f", pos.X, pos.Y, pos.Z)
-            Fluent:Notify({Title = t("notifSuccess"), Content = t("notifPos"), Duration = 2})
+            WindUI:Notify({Title = t("notifSuccess"), Content = t("notifPos"), Duration = 2})
         end
     end
 })
 
-Tabs.TP:AddButton({
+Tabs.TP:Button({
     Title = t("save"),
-    Description = "",
     Callback = function()
         if inputNama ~= "" and inputCoord ~= "" then
             local split = string.split(inputCoord, ",")
             if #split >= 3 then
                 table.insert(daftarLokasi, {Nama = inputNama, X = tonumber(split[1]), Y = tonumber(split[2]), Z = tonumber(split[3])})
                 simpanData()
-                Fluent:Notify({Title = t("notifSaved"), Content = t("notifLocSaved"), Duration = 2})
+                WindUI:Notify({Title = t("notifSaved"), Content = t("notifLocSaved"), Duration = 2})
             end
         end
     end
 })
 
-Tabs.TP:AddParagraph({
-    Title = t("savedSec"),
-    Content = "List of saved custom locations below:"
-})
+Tabs.TP:Divider()
 
 -- Smooth Tween Teleport Function
 local function teleportKe(x, y, z)
@@ -192,14 +181,12 @@ local function teleportKe(x, y, z)
         local hrp = LocalPlayer.Character.HumanoidRootPart
         local targetCFrame = CFrame.new(x, y, z)
         
-        -- Calculate distance and tween speed (e.g., 300 studs per second)
         local distance = (hrp.Position - targetCFrame.Position).Magnitude
         local speed = 350 
         local duration = math.clamp(distance / speed, 0.1, 3.5)
         
         hrp.Anchored = true
         
-        -- Create a floating path support platform during movement
         local platform = Instance.new("Part")
         platform.Size = Vector3.new(15, 1, 15)
         platform.Position = Vector3.new(x, y - 3.5, z)
@@ -223,9 +210,9 @@ local function teleportKe(x, y, z)
 end
 
 for _, data in ipairs(daftarLokasi) do
-    Tabs.TP:AddButton({
+    Tabs.TP:Button({
         Title = "TP to: " .. data.Nama,
-        Description = string.format("X: %.1f | Y: %.1f | Z: %.1f", data.X, data.Y, data.Z),
+        Desc = string.format("X: %.1f | Y: %.1f | Z: %.1f", data.X, data.Y, data.Z),
         Callback = function()
             teleportKe(data.X, data.Y, data.Z)
         end
@@ -236,91 +223,89 @@ local holdTimeInput = 1.5
 local delayTimeInput = 0.5
 local autoTPDelayInput = 3
 
-Tabs.Settings:AddInput("HoldInput", {
+Tabs.Settings:Input({
     Title = t("holdInput"),
     Default = "1.5",
-    Placeholder = "1.5",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        holdTimeInput = tonumber(Value) or 1.5
+    Callback = function(text)
+        holdTimeInput = tonumber(text) or 1.5
     end
 })
 
-Tabs.Settings:AddInput("DelayInput", {
+Tabs.Settings:Input({
     Title = t("delayInput"),
     Default = "0.5",
-    Placeholder = "0.5",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        delayTimeInput = tonumber(Value) or 0.5
+    Callback = function(text)
+        delayTimeInput = tonumber(text) or 0.5
     end
 })
 
-local AutoEToggle = Tabs.Settings:AddToggle("AutoEToggle", {Title = t("autoE"), Default = false })
-AutoEToggle:OnChanged(function()
-    local autoEAktif = AutoEToggle.Value
-    if autoEAktif then
-        task.spawn(function()
-            while AutoEToggle.Value do
-                local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    local adaPromptDekat = false
-                    for _, obj in ipairs(workspace:GetDescendants()) do
-                        if obj:IsA("ProximityPrompt") and obj.Enabled then
-                            local pos = obj.Parent:IsA("BasePart") and obj.Parent.Position or (obj.Parent:IsA("Model") and obj.Parent.PrimaryPart and obj.Parent.PrimaryPart.Position)
-                            if pos and (hrp.Position - pos).Magnitude <= 12 then
-                                adaPromptDekat = true
-                                if fireproximityprompt then pcall(function() fireproximityprompt(obj) end) end
-                                break
+local autoEAktif = false
+Tabs.Settings:Toggle({
+    Title = t("autoE"),
+    Default = false,
+    Callback = function(Value)
+        autoEAktif = Value
+        if autoEAktif then
+            task.spawn(function()
+                while autoEAktif do
+                    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local adaPromptDekat = false
+                        for _, obj in ipairs(workspace:GetDescendants()) do
+                            if obj:IsA("ProximityPrompt") and obj.Enabled then
+                                local pos = obj.Parent:IsA("BasePart") and obj.Parent.Position or (obj.Parent:IsA("Model") and obj.Parent.PrimaryPart and obj.Parent.PrimaryPart.Position)
+                                if pos and (hrp.Position - pos).Magnitude <= 12 then
+                                    adaPromptDekat = true
+                                    if fireproximityprompt then pcall(function() fireproximityprompt(obj) end) end
+                                    break
+                                end
                             end
                         end
+                        if adaPromptDekat then
+                            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+                            task.wait(holdTimeInput)
+                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+                        end
                     end
-                    if adaPromptDekat then
-                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-                        task.wait(holdTimeInput)
-                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-                    end
+                    task.wait(delayTimeInput)
                 end
-                task.wait(delayTimeInput)
-            end
-        end)
-    end
-end)
-
-Tabs.Settings:AddInput("AutoTPDelayInput", {
-    Title = t("autoTPDelay"),
-    Default = "3",
-    Placeholder = "3",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        autoTPDelayInput = tonumber(Value) or 3
+            end)
+        end
     end
 })
 
-local AutoTPToggle = Tabs.Settings:AddToggle("AutoTPToggle", {Title = t("autoTP"), Default = false })
-AutoTPToggle:OnChanged(function()
-    local autoTPAktif = AutoTPToggle.Value
-    if autoTPAktif then
-        task.spawn(function()
-            local indexTP = 1
-            while AutoTPToggle.Value do
-                if #daftarLokasi == 0 then break end
-                if indexTP > #daftarLokasi then indexTP = 1 end
-                local loc = daftarLokasi[indexTP]
-                if loc then teleportKe(loc.X, loc.Y, loc.Z) end
-                indexTP = indexTP + 1
-                task.wait(autoTPDelayInput)
-            end
-        end)
+Tabs.Settings:Input({
+    Title = t("autoTPDelay"),
+    Default = "3",
+    Callback = function(text)
+        autoTPDelayInput = tonumber(text) or 3
     end
-end)
+})
 
-Tabs.Settings:AddButton({
+local autoTPAktif = false
+Tabs.Settings:Toggle({
+    Title = t("autoTP"),
+    Default = false,
+    Callback = function(Value)
+        autoTPAktif = Value
+        if autoTPAktif then
+            task.spawn(function()
+                local indexTP = 1
+                while autoTPAktif do
+                    if #daftarLokasi == 0 then break end
+                    if indexTP > #daftarLokasi then indexTP = 1 end
+                    local loc = daftarLokasi[indexTP]
+                    if loc then teleportKe(loc.X, loc.Y, loc.Z) end
+                    indexTP = indexTP + 1
+                    task.wait(autoTPDelayInput)
+                end
+            end)
+        end
+    end
+})
+
+Tabs.Settings:Button({
     Title = t("preset"),
-    Description = "",
     Callback = function()
         local dataPreset = {
             {Y = 2078, X = -1587, Z = -1820, Nama = "Ride Storm - 1A"},
@@ -332,29 +317,28 @@ Tabs.Settings:AddButton({
             table.insert(daftarLokasi, {Nama = loc.Nama, X = loc.X, Y = loc.Y, Z = loc.Z})
         end
         simpanData()
-        Fluent:Notify({Title = t("notifPreset"), Content = t("notifPresetDesc"), Duration = 2})
+        WindUI:Notify({Title = t("notifPreset"), Content = t("notifPresetDesc"), Duration = 2})
     end
 })
 
-Tabs.Settings:AddDropdown("LangDropdown", {
+Tabs.Settings:Dropdown({
     Title = t("langLabel"),
     Values = {"English", "Português", "Indo"},
-    Default = 1,
-    Callback = function(Value)
-        if Value == "English" then
+    Value = "English",
+    Callback = function(Option)
+        if Option == "English" then
             currentLang = "EN"
-        elseif Value == "Português" then
+        elseif Option == "Português" then
             currentLang = "PT"
-        elseif Value == "Indo" then
+        elseif Option == "Indo" then
             currentLang = "ID"
         end
-        Fluent:Notify({Title = "Language", Content = "Language changed. Please re-execute script to update UI elements.", Duration = 3})
+        WindUI:Notify({Title = "Language", Content = "Language changed. Please re-execute script to update UI elements.", Duration = 3})
     end
 })
 
-Window:SelectTab(1)
-Fluent:Notify({
+WindUI:Notify({
     Title = "LITEDIRT",
-    Content = "Loaded with Smooth Tween Teleport!",
+    Content = "Loaded successfully with WindUI & Smooth Tween!",
     Duration = 5
 })
