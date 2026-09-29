@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Safe Version (Guaranteed Menu Visibility & 20 Studs Descent)
+-- Modern Tabbed Menu - Stepped Forward Approach (20 to 5 Studs)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -174,8 +174,8 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- Fungsi Stepped Descent Delivery 20 Studs (Aman & Stabil)
-local function ExecuteSteppedDescent20Studs(targetCFrame)
+-- Fungsi Pendekatan Bertahap Maju (Dari 20 stud perlahan maju ke 5 stud di depan NPC)
+local function ExecuteSteppedForwardDelivery(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
     local targetModelOrPart = humanoidRootPart
@@ -184,12 +184,12 @@ local function ExecuteSteppedDescent20Studs(targetCFrame)
         targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
     
-    local baseForward = targetCFrame + (targetCFrame.LookVector * 20) + (targetCFrame.RightVector * 2)
-    local heights = {100, 60, 30, 0}
+    -- Jarak bertahap maju mendekati NPC: 20, 15, 10, hingga 5 stud
+    local distances = {20, 15, 10, 5}
     
     task.spawn(function()
-        for _, h in ipairs(heights) do
-            local stepCFrame = baseForward + Vector3.new(0, h, 0)
+        for _, d in ipairs(distances) do
+            local stepCFrame = targetCFrame + (targetCFrame.LookVector * d) + Vector3.new(0, 3, 0)
             
             if seatPart then
                 local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
@@ -210,7 +210,7 @@ local function ExecuteSteppedDescent20Studs(targetCFrame)
                 humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
             end
             
-            task.wait(0.04)
+            task.wait(0.05) -- Jeda mikro perpindahan antar jarak agar mulus
         end
     end)
 end
@@ -399,7 +399,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Stepped Descent 20 Studs)
+-- TAB 2: WAYPOINT LIST (Stepped Forward Approach 20 to 5 Studs)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -448,7 +448,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteSteppedDescent20Studs(part.CFrame)
+            ExecuteSteppedForwardDelivery(part.CFrame)
         end)
     end
     
@@ -508,4 +508,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Stable GUI Menu Loaded Successfully!")
+print("✨ Stepped Forward Approach Loaded Successfully!")
