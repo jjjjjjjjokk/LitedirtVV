@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Hybrid Safe)
+-- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Smooth Tween Murni Anti-Detection)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -147,7 +147,7 @@ pagesContainer.BackgroundTransparency = 1
 pagesContainer.ClipsDescendants = true
 pagesContainer.Parent = mainContainer
 
--- 1. Fungsi Teleport Instant Murni untuk Saved Locations
+-- 1. Instant TP Murni untuk Saved Locations
 local function ExecuteInstantTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
@@ -173,8 +173,8 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- 2. Fungsi Hybrid Aman khusus DeliveryWaypoint (Pas di depan muka NPC / anti gagal quest)
-local function ExecuteDeliveryWaypointTeleport(targetCFrame)
+-- 2. Smooth Tween Murni khusus DeliveryWaypoint (Aman dari deteksi teleport & quest gagal)
+local function ExecuteDeliveryTweenTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
     local targetModelOrPart = humanoidRootPart
@@ -183,23 +183,14 @@ local function ExecuteDeliveryWaypointTeleport(targetCFrame)
         targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
     
+    -- Posisi akhir persis di depan muka NPC
     local finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
-    local intermediateCFrame = finalCFrame + (targetCFrame.LookVector * -80) + Vector3.new(0, 5, 0)
     
-    if seatPart then
-        local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
-        if vehicleModel and vehicleModel.PrimaryPart then
-            vehicleModel:PivotTo(intermediateCFrame)
-        else
-            targetModelOrPart.CFrame = intermediateCFrame
-        end
-    else
-        humanoidRootPart.CFrame = intermediateCFrame
-    end
+    -- Hitung jarak untuk menentukan durasi mulus (dianggap melaju kencang secara sah)
+    local distance = (finalCFrame.Position - targetModelOrPart.Position).Magnitude
+    local duration = math.clamp(distance / 250, 1.2, 4.5) -- Kecepatan diatur agar server tidak curiga
     
-    task.wait(0.05)
-    
-    local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
     local tween = TweenService:Create(targetModelOrPart, tweenInfo, {CFrame = finalCFrame})
     
     local oldBodyVelocity = targetModelOrPart:FindFirstChild("SmoothTPVelocity")
@@ -399,7 +390,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Hybrid Aman Khusus NPC Delivery)
+-- TAB 2: WAYPOINT LIST (Smooth Tween Murni Anti-Detection)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -448,7 +439,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteDeliveryWaypointTeleport(part.CFrame)
+            ExecuteDeliveryTweenTeleport(part.CFrame)
         end)
     end
     
@@ -508,4 +499,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Final Focused Delivery Teleport Loaded!")
+print("✨ Anti-Detection Delivery Smooth Tween Loaded!")
