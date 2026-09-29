@@ -1,4 +1,4 @@
--- // LITEDIRT CUSTOM UI (NO EXTERNAL LIBRARY DEPENDENCY) // --
+-- // LITEDIRT CUSTOM UI + DELETE LOCATION FEATURE // --
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -24,17 +24,13 @@ local texts = {
         getPos = "📍 Get Current Position",
         save = "💾 Save Location",
         savedSec = "Saved Locations",
-        holdInput = "Hold Auto E (seconds)",
-        delayInput = "Delay Auto E (seconds)",
-        autoE = "Auto E",
-        autoTPDelay = "Auto TP Delay (seconds)",
-        autoTP = "Auto TP",
         preset = "📦 Load Preset: Ride Storm",
-        langLabel = "🌐 Language",
         notifSuccess = "Success",
         notifPos = "Position Captured!",
         notifSaved = "Saved",
         notifLocSaved = "Location saved successfully!",
+        notifDel = "Deleted",
+        notifLocDel = "Location deleted!",
         notifPreset = "Preset Loaded",
         notifPresetDesc = "Ride Storm preset added!"
     },
@@ -49,17 +45,13 @@ local texts = {
         getPos = "📍 Obter Posição",
         save = "💾 Salvar Local",
         savedSec = "Locais Salvos",
-        holdInput = "Segurar Auto E (seg)",
-        delayInput = "Atraso Auto E (seg)",
-        autoE = "Auto E",
-        autoTPDelay = "Atraso Auto TP (seg)",
-        autoTP = "Auto TP",
         preset = "📦 Carregar Preset: Ride Storm",
-        langLabel = "🌐 Idioma",
         notifSuccess = "Sucesso",
         notifPos = "Posição Capturada!",
         notifSaved = "Salvo",
         notifLocSaved = "Local salvo com sucesso!",
+        notifDel = "Excluído",
+        notifLocDel = "Local excluído!",
         notifPreset = "Preset Carregado",
         notifPresetDesc = "Preset Ride Storm adicionado!"
     },
@@ -74,17 +66,13 @@ local texts = {
         getPos = "📍 Ambil Posisi Saat Ini",
         save = "💾 Simpan Lokasi",
         savedSec = "Lokasi Tersimpan",
-        holdInput = "Tahan Auto E (detik)",
-        delayInput = "Jeda Auto E (detik)",
-        autoE = "Auto E",
-        autoTPDelay = "Jeda Auto TP (detik)",
-        autoTP = "Auto TP",
         preset = "📦 Load Preset: Ride Storm",
-        langLabel = "🌐 Bahasa",
         notifSuccess = "Berhasil",
         notifPos = "Posisi Berhasil Diambil!",
         notifSaved = "Disimpan",
         notifLocSaved = "Lokasi berhasil disimpan!",
+        notifDel = "Dihapus",
+        notifLocDel = "Lokasi berhasil dihapus!",
         notifPreset = "Preset Dimuat",
         notifPresetDesc = "Preset Ride Storm ditambahkan!"
     }
@@ -251,7 +239,6 @@ muatData()
 local inputNama = ""
 local inputCoord = ""
 
--- UI Elements TP Tab
 local function createInput(parent, placeholder, yPos, callback)
     local box = Instance.new("TextBox", parent)
     box.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
@@ -296,12 +283,16 @@ createButton(ContainerTP, t("getPos"), 90, function()
     end
 end)
 
+-- Forward declaration for render function
+local renderLocations
+
 createButton(ContainerTP, t("save"), 130, function()
     if inputNama ~= "" and inputCoord ~= "" then
         local split = string.split(inputCoord, ",")
         if #split >= 3 then
             table.insert(daftarLokasi, {Nama = inputNama, X = tonumber(split[1]), Y = tonumber(split[2]), Z = tonumber(split[3])})
             simpanData()
+            renderLocations()
             sendNotif(t("notifSaved"), t("notifLocSaved"))
         end
     end
@@ -341,28 +332,48 @@ local function teleportKe(x, y, z)
     end
 end
 
--- Render Saved Locations List
-local function renderLocations()
+-- Render Saved Locations List with Delete Buttons
+renderLocations = function()
     for _, child in ipairs(ContainerTP:GetChildren()) do
-        if child.Name == "DynamicTPBtn" then child:Destroy() end
+        if child.Name == "DynamicTPContainer" then child:Destroy() end
     end
     
     local startY = 180
-    for _, data in ipairs(daftarLokasi) do
-        local btn = Instance.new("TextButton", ContainerTP)
-        btn.Name = "DynamicTPBtn"
-        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        btn.TextColor3 = Color3.fromRGB(100, 220, 255)
-        btn.Text = "TP to: " .. data.Nama
-        btn.TextSize = 12
-        btn.Font = Enum.Font.GothamMedium
-        btn.Size = UDim2.new(1, -15, 0, 32)
-        btn.Position = UDim2.new(0, 0, 0, startY)
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    for index, data in ipairs(daftarLokasi) do
+        local itemFrame = Instance.new("Frame", ContainerTP)
+        itemFrame.Name = "DynamicTPContainer"
+        itemFrame.BackgroundTransparency = 1
+        itemFrame.Size = UDim2.new(1, -15, 0, 32)
+        itemFrame.Position = UDim2.new(0, 0, 0, startY)
         
-        btn.MouseButton1Click:Connect(function()
+        local tpBtn = Instance.new("TextButton", itemFrame)
+        tpBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        tpBtn.TextColor3 = Color3.fromRGB(100, 220, 255)
+        tpBtn.Text = "TP: " .. data.Nama
+        tpBtn.TextSize = 12
+        tpBtn.Font = Enum.Font.GothamMedium
+        tpBtn.Size = UDim2.new(1, -40, 1, 0)
+        Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
+        tpBtn.MouseButton1Click:Connect(function()
             teleportKe(data.X, data.Y, data.Z)
         end)
+        
+        local delBtn = Instance.new("TextButton", itemFrame)
+        delBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        delBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        delBtn.Text = "❌"
+        delBtn.TextSize = 12
+        delBtn.Font = Enum.Font.GothamBold
+        delBtn.Size = UDim2.new(0, 32, 1, 0)
+        delBtn.Position = UDim2.new(1, -32, 0, 0)
+        Instance.new("UICorner", delBtn).CornerRadius = UDim.new(0, 6)
+        delBtn.MouseButton1Click:Connect(function()
+            table.remove(daftarLokasi, index)
+            simpanData()
+            renderLocations()
+            sendNotif(t("notifDel"), t("notifLocDel"))
+        end)
+        
         startY = startY + 40
     end
     ContainerTP.CanvasSize = UDim2.new(0, 0, 0, startY + 20)
@@ -470,4 +481,4 @@ createButton(ContainerSet, "🌐 Bahasa: Indonesia (ID)", 360, function()
     sendNotif("Bahasa", "Diubah ke Bahasa Indonesia")
 end)
 
-sendNotif("LITEDIRT", "Custom Menu Loaded Successfully!")
+sendNotif("LITEDIRT", "Custom Menu Loaded with Delete Feature!")
