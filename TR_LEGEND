@@ -1,10 +1,9 @@
--- Modern Tabbed Menu - Stepped Descent 20 Studs + Auto Gas (W)
+-- Modern Tabbed Menu - Safe Version (Guaranteed Menu Visibility & 20 Studs Descent)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local Workspace = game:GetService("Workspace")
-local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -18,6 +17,7 @@ player.CharacterAdded:Connect(function(newChar)
     humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
 end)
 
+-- Hapus GUI lama jika ada agar tidak menumpuk
 if playerGui:FindFirstChild("StableWaypointMenu") then
     playerGui.StableWaypointMenu:Destroy()
 end
@@ -174,7 +174,7 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- Fungsi Stepped Descent Delivery 20 Studs + Auto Press W (Gas)
+-- Fungsi Stepped Descent Delivery 20 Studs (Aman & Stabil)
 local function ExecuteSteppedDescent20Studs(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
@@ -184,9 +184,8 @@ local function ExecuteSteppedDescent20Studs(targetCFrame)
         targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
     
-    -- Jarak diubah menjadi 20 stud di depan muka NPC
     local baseForward = targetCFrame + (targetCFrame.LookVector * 20) + (targetCFrame.RightVector * 2)
-    local heights = {150, 100, 60, 30, 0}
+    local heights = {100, 60, 30, 0}
     
     task.spawn(function()
         for _, h in ipairs(heights) do
@@ -213,14 +212,6 @@ local function ExecuteSteppedDescent20Studs(targetCFrame)
             
             task.wait(0.04)
         end
-        
-        -- Otomatis tekan tombol W (Gas) agar motor maju perlahan mendekati NPC
-        task.wait(0.05)
-        pcall(function()
-            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, game)
-            task.wait(0.6)
-            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
-        end)
     end)
 end
 
@@ -408,7 +399,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Stepped Descent 20 Studs + Auto Gas W)
+-- TAB 2: WAYPOINT LIST (Stepped Descent 20 Studs)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -517,239 +508,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ 20 Studs Descent Delivery Teleport Loaded!")
-tton.Name = name
-    button.Size = UDim2.new(1, -16, 0, 38)
-    button.Position = UDim2.new(0, 8, 0, 0)
-    button.BackgroundColor3 = colors.bg_light
-    button.TextColor3 = colors.text
-    button.TextSize = 12
-    button.Font = Enum.Font.GothamSemibold
-    button.Text = text
-    button.BorderSizePixel = 0
-    button.LayoutOrder = layoutOrder or 0
-    button.Parent = page
-    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color
-    stroke.Thickness = 1.5
-    stroke.Transparency = 0.7
-    stroke.Parent = button
-    
-    button.MouseButton1Click:Connect(function() if callback then callback() end end)
-    return button
-end
-
-local function CreateCategoryInPage(page, text, layoutOrder)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -16, 0, 22)
-    label.Position = UDim2.new(0, 8, 0, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = colors.primary
-    label.TextSize = 11
-    label.Font = Enum.Font.GothamBold
-    label.Text = text
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.LayoutOrder = layoutOrder or 0
-    label.Parent = page
-    return label
-end
-
--- TAB 1: LOCATIONS (Instant TP Murni)
-local locPage = CreateTab("Locations", "📍 Saved Locations")
-CreateCategoryInPage(locPage, "💾 SAVE & SEQUENCE", 11)
-
-CreateButtonInPage(locPage, "SaveLocation", "➕ Save Current Location", function()
-    if not humanoidRootPart then return end
-    local targetPart = humanoid.SeatPart and (humanoid.SeatPart.AssemblyRootPart or humanoid.SeatPart) or humanoidRootPart
-    local pos = targetPart.Position
-    table.insert(savedLocations, {x = pos.X, y = pos.Y, z = pos.Z})
-    SaveLocationsToFile()
-    RefreshLocations()
-end, colors.success, 12)
-
-local isAutoTPRunning = false
-CreateButtonInPage(locPage, "AutoTPSequence", "▶ Auto TP: 1 to Last Location", function()
-    if #savedLocations == 0 then return end
-    if isAutoTPRunning then isAutoTPRunning = false return end
-    isAutoTPRunning = true
-    task.spawn(function()
-        for _, loc in ipairs(savedLocations) do
-            if not isAutoTPRunning then break end
-            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
-            task.wait(1)
-        end
-        isAutoTPRunning = false
-    end)
-end, colors.warning, 13)
-
-local savedLocationsContainer = Instance.new("Frame")
-savedLocationsContainer.Size = UDim2.new(1, 0, 0, 0)
-savedLocationsContainer.BackgroundTransparency = 1
-savedLocationsContainer.LayoutOrder = 20
-savedLocationsContainer.Parent = locPage
-local locLayout = Instance.new("UIListLayout")
-locLayout.Parent = savedLocationsContainer
-locLayout.Padding = UDim.new(0, 4)
-
-function RefreshLocations()
-    for _, child in pairs(savedLocationsContainer:GetChildren()) do
-        if child ~= locLayout then child:Destroy() end
-    end
-    if #savedLocations == 0 then
-        savedLocationsContainer.Size = UDim2.new(1, 0, 0, 0)
-        UpdatePageCanvas(locPage)
-        return
-    end
-    for idx, loc in ipairs(savedLocations) do
-        local locBtn = Instance.new("TextButton")
-        locBtn.Size = UDim2.new(1, -16, 0, 38)
-        locBtn.Position = UDim2.new(0, 8, 0, 0)
-        locBtn.BackgroundColor3 = colors.bg_light
-        locBtn.TextColor3 = colors.text
-        locBtn.TextSize = 11
-        locBtn.Font = Enum.Font.GothamSemibold
-        locBtn.Text = string.format("#%d - TP: (%.0f, %.0f, %.0f)", idx, loc.x, loc.y, loc.z)
-        locBtn.BorderSizePixel = 0
-        locBtn.LayoutOrder = idx
-        locBtn.Parent = savedLocationsContainer
-        Instance.new("UICorner", locBtn).CornerRadius = UDim.new(0, 8)
-        
-        locBtn.MouseButton1Click:Connect(function()
-            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
-        end)
-        
-        local delBtn = Instance.new("TextButton")
-        delBtn.Size = UDim2.new(0, 26, 0, 26)
-        delBtn.Position = UDim2.new(1, -34, 0.5, -13)
-        delBtn.BackgroundColor3 = colors.accent
-        delBtn.TextColor3 = colors.text
-        delBtn.TextSize = 12
-        delBtn.Font = Enum.Font.GothamBold
-        delBtn.Text = "×"
-        delBtn.BorderSizePixel = 0
-        delBtn.Parent = locBtn
-        Instance.new("UICorner", delBtn).CornerRadius = UDim.new(0, 6)
-        
-        delBtn.MouseButton1Click:Connect(function()
-            table.remove(savedLocations, idx)
-            SaveLocationsToFile()
-            RefreshLocations()
-        end)
-    end
-    savedLocationsContainer.Size = UDim2.new(1, 0, 0, (#savedLocations + 1) * 42)
-    UpdatePageCanvas(locPage)
-end
-RefreshLocations()
-
--- TAB 2: WAYPOINT LIST (Stepped Descent + Auto Gas W)
-local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
-CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
-
-local waypointContainer = Instance.new("Frame")
-waypointContainer.Size = UDim2.new(1, 0, 0, 0)
-waypointContainer.BackgroundTransparency = 1
-waypointContainer.LayoutOrder = 12
-waypointContainer.Parent = boardListPage
-local waypointLayout = Instance.new("UIListLayout")
-waypointLayout.Parent = waypointContainer
-waypointLayout.Padding = UDim.new(0, 4)
-
-local function RefreshWaypointList()
-    for _, child in pairs(waypointContainer:GetChildren()) do
-        if child ~= waypointLayout then child:Destroy() end
-    end
-    
-    local waypointList = {}
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if string.find(string.lower(obj.Name), "deliverywaypoint") then
-            local targetPart = obj:IsA("BasePart") and obj or (obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")))
-            if targetPart and not table.find(waypointList, targetPart) then
-                table.insert(waypointList, targetPart)
-            end
-        end
-    end
-    
-    if #waypointList == 0 then
-        waypointContainer.Size = UDim2.new(1, 0, 0, 0)
-        UpdatePageCanvas(boardListPage)
-        return
-    end
-    
-    for idx, part in ipairs(waypointList) do
-        local bBtn = Instance.new("TextButton")
-        bBtn.Size = UDim2.new(1, -16, 0, 38)
-        bBtn.Position = UDim2.new(0, 8, 0, 0)
-        bBtn.BackgroundColor3 = colors.bg_light
-        bBtn.TextColor3 = colors.text
-        bBtn.TextSize = 11
-        bBtn.Font = Enum.Font.GothamSemibold
-        bBtn.Text = "📌 Waypoint: " .. part.Name
-        bBtn.BorderSizePixel = 0
-        bBtn.LayoutOrder = idx
-        bBtn.Parent = waypointContainer
-        Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
-        
-        bBtn.MouseButton1Click:Connect(function()
-            ExecuteSteppedDescentWithGas(part.CFrame)
-        end)
-    end
-    
-    waypointContainer.Size = UDim2.new(1, 0, 0, (#waypointList) * 42)
-    UpdatePageCanvas(boardListPage)
-end
-
-CreateButtonInPage(boardListPage, "RefreshWaypoints", "🔄 Refresh Waypoint List", function()
-    RefreshWaypointList()
-end, colors.warning, 11)
-
-RefreshWaypointList()
-
-tabs["Locations"].BackgroundColor3 = colors.primary
-tabs["Locations"].TextColor3 = colors.bg
-locPage.Visible = true
-
-collapseBtn.MouseButton1Click:Connect(function()
-    if tabBar.Visible then
-        tabBar.Visible = false
-        pagesContainer.Visible = false
-        TweenService:Create(mainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 350, 0, 45)}):Play()
-        collapseBtn.Text = "+"
-    else
-        tabBar.Visible = true
-        pagesContainer.Visible = true
-        TweenService:Create(mainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 350, 0, 420)}):Play()
-        collapseBtn.Text = "−"
-    end
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-    local t = TweenService:Create(mainContainer, TweenInfo.new(0.2), {Position = UDim2.new(0.5, -175, 1, 100)})
-    t:Play()
-    t.Completed:Connect(function() screenGui:Destroy() end)
-end)
-
-local dragging, dragStart, startPos
-header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainContainer.Position
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        mainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
-print("✨ Stepped Descent + Auto Gas (W) Loaded!")
+print("✨ Stable GUI Menu Loaded Successfully!")
