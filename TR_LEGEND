@@ -1,9 +1,10 @@
--- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Offset Safe Spawn)
+-- Modern Tabbed Menu - Stepped Descent & Auto Forward (Press W)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -147,7 +148,7 @@ pagesContainer.BackgroundTransparency = 1
 pagesContainer.ClipsDescendants = true
 pagesContainer.Parent = mainContainer
 
--- 1. Instant TP Murni untuk Saved Locations
+-- Fungsi Instant TP untuk Saved Locations
 local function ExecuteInstantTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
@@ -173,32 +174,53 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- 2. Delivery Waypoint Teleport (Spawn 100 stud di depan, tapi digeser sedikit ke samping agar tidak pas di badan NPC)
-local function ExecuteForward100Delivery(targetCFrame)
+-- Fungsi Stepped Descent Delivery + Auto Press W (Gas)
+local function ExecuteSteppedDescentWithGas(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
-    
-    -- Maju 100 stud, tapi digeser ke kanan (RightVector * 5) agar tidak persis di tengah badan NPC
-    local forwardCFrame = targetCFrame + (targetCFrame.LookVector * 100) + (targetCFrame.RightVector * 5) + Vector3.new(0, 4, 0)
+    local targetModelOrPart = humanoidRootPart
     
     if seatPart then
-        local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
-        if vehicleModel and vehicleModel.PrimaryPart then
-            vehicleModel:PivotTo(forwardCFrame)
-            for _, part in ipairs(vehicleModel:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                end
-            end
-        else
-            seatPart.CFrame = forwardCFrame
-            seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-        end
-    else
-        humanoidRootPart.CFrame = forwardCFrame
-        humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
+    
+    local baseForward = targetCFrame + (targetCFrame.LookVector * 100) + (targetCFrame.RightVector * 5)
+    local heights = {300, 250, 200, 150, 100}
+    
+    task.spawn(function()
+        for _, h in ipairs(heights) do
+            local stepCFrame = baseForward + Vector3.new(0, h, 0)
+            
+            if seatPart then
+                local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
+                if vehicleModel and vehicleModel.PrimaryPart then
+                    vehicleModel:PivotTo(stepCFrame)
+                    for _, part in ipairs(vehicleModel:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                            part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                        end
+                    end
+                else
+                    seatPart.CFrame = stepCFrame
+                    seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                end
+            else
+                humanoidRootPart.CFrame = stepCFrame
+                humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            end
+            
+            task.wait(0.04)
+        end
+        
+        -- Setelah sampai di bawah, otomatis tekan tombol W (Gas) agar motor maju ke depan NPC
+        task.wait(0.1)
+        pcall(function()
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, game)
+            task.wait(0.8) -- Tahan tombol W selama 0.8 detik
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+        end)
+    end)
 end
 
 local tabs = {}
@@ -385,7 +407,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Offset Safe Spawn)
+-- TAB 2: WAYPOINT LIST (Stepped Descent + Auto Gas W)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -434,7 +456,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteForward100Delivery(part.CFrame)
+            ExecuteSteppedDescentWithGas(part.CFrame)
         end)
     end
     
@@ -494,4 +516,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Offset Safe Delivery Teleport Loaded!")
+print("✨ Stepped Descent + Auto Gas (W) Loaded!")
