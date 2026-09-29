@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Perfect Instant TP (Vehicle Stabilizer & No Quest Fail)
+-- Modern Tabbed Menu - Safe NPC Delivery Teleport (No Collision / No Quest Fail)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -147,8 +147,8 @@ pagesContainer.BackgroundTransparency = 1
 pagesContainer.ClipsDescendants = true
 pagesContainer.Parent = mainContainer
 
--- Fungsi Instant Teleport dengan Stabilizer (Anti Kepental & Anti Nembus Lantai)
-local function ExecuteInstantTeleport(targetCFrame)
+-- Fungsi Teleport dengan Offset Aman (Tidak menabrak NPC/DeliveryWaypoint langsung)
+local function ExecuteSafeTeleport(targetCFrame, isWaypoint)
     if not humanoidRootPart or not humanoid then return end
     
     local seatPart = humanoid.SeatPart
@@ -158,12 +158,16 @@ local function ExecuteInstantTeleport(targetCFrame)
         targetModel = seatPart:FindFirstAncestorOfClass("Model")
     end
     
-    -- Beri ketinggian sedikit (Y + 4) agar tidak nembus lantai
-    local safeCFrame = targetCFrame + Vector3.new(0, 4, 0)
+    -- Jika ini adalah waypoint NPC, berikan sedikit jarak (maju ke depan 5 stud dan sedikit ke atas) agar tidak menabrak NPC
+    local safeCFrame = targetCFrame
+    if isWaypoint then
+        safeCFrame = targetCFrame + (targetCFrame.LookVector * -5) + Vector3.new(0, 3, 0)
+    else
+        safeCFrame = targetCFrame + Vector3.new(0, 3, 0)
+    end
     
     if targetModel and targetModel.PrimaryPart then
         targetModel:SetPrimaryPartCFrame(safeCFrame)
-        -- Matikan gaya dorong/kecepatan fisik agar kendaraan langsung stabil dan tidak mental
         for _, part in ipairs(targetModel:GetDescendants()) do
             if part:IsA("BasePart") then
                 part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -298,7 +302,7 @@ CreateButtonInPage(locPage, "AutoTPSequence", "▶ Auto TP: 1 to Last Location",
     task.spawn(function()
         for _, loc in ipairs(savedLocations) do
             if not isAutoTPRunning then break end
-            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
+            ExecuteSafeTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)), false)
             task.wait(1)
         end
         isAutoTPRunning = false
@@ -338,7 +342,7 @@ function RefreshLocations()
         Instance.new("UICorner", locBtn).CornerRadius = UDim.new(0, 8)
         
         locBtn.MouseButton1Click:Connect(function()
-            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
+            ExecuteSafeTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)), false)
         end)
         
         local delBtn = Instance.new("TextButton")
@@ -413,7 +417,8 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteInstantTeleport(part.CFrame)
+            -- Menggunakan parameter true agar motor berhenti tepat di depan NPC (tidak menabrak NPC)
+            ExecuteSafeTeleport(part.CFrame, true)
         end)
     end
     
@@ -473,4 +478,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Perfect Instant Vehicle Teleport Loaded!")
+print("✨ Safe NPC Delivery Teleport Loaded!")
