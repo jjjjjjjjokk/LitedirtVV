@@ -1,4 +1,4 @@
-local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/dist/main.lua"))()
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua"))()
 
 local currentLang = "EN"
 local texts = {
@@ -339,6 +339,6 @@ Tabs.Settings:Dropdown({
 
 WindUI:Notify({
     Title = "LITEDIRT",
-    Content = "Loaded successfully with WindUI & Smooth Tween!",
+    Content = "Loaded successfully!",
     Duration = 5
 })
