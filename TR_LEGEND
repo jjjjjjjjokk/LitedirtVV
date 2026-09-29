@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Smooth Tween Murni Anti-Detection)
+-- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (300 Stud Safe Hybrid)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -173,8 +173,8 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- 2. Smooth Tween Murni khusus DeliveryWaypoint (Aman dari deteksi teleport & quest gagal)
-local function ExecuteDeliveryTweenTeleport(targetCFrame)
+-- 2. Hybrid Teleport (Instan ke jarak 300 stud dari NPC, lalu Smooth Tween masuk ke depan muka NPC)
+local function ExecuteDeliveryWaypointTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
     local targetModelOrPart = humanoidRootPart
@@ -183,14 +183,33 @@ local function ExecuteDeliveryTweenTeleport(targetCFrame)
         targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
     
-    -- Posisi akhir persis di depan muka NPC
+    -- Posisi akhir tepat di depan muka NPC
     local finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
     
-    -- Hitung jarak untuk menentukan durasi mulus (dianggap melaju kencang secara sah)
-    local distance = (finalCFrame.Position - targetModelOrPart.Position).Magnitude
-    local duration = math.clamp(distance / 250, 1.2, 4.5) -- Kecepatan diatur agar server tidak curiga
+    -- Titik awal instan berada sejauh 300 stud di belakang NPC agar lolos dari deteksi server
+    local intermediateCFrame = finalCFrame + (targetCFrame.LookVector * -300) + Vector3.new(0, 5, 0)
     
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    if seatPart then
+        local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
+        if vehicleModel and vehicleModel.PrimaryPart then
+            vehicleModel:PivotTo(intermediateCFrame)
+            for _, part in ipairs(vehicleModel:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                end
+            end
+        else
+            seatPart.CFrame = intermediateCFrame
+        end
+    else
+        humanoidRootPart.CFrame = intermediateCFrame
+    end
+    
+    task.wait(0.08) -- Jeda mikro agar server game merender posisi 300 stud tersebut
+    
+    -- Tween masuk dengan mulus dari jarak 300 stud menuju depan muka NPC
+    local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = TweenService:Create(targetModelOrPart, tweenInfo, {CFrame = finalCFrame})
     
     local oldBodyVelocity = targetModelOrPart:FindFirstChild("SmoothTPVelocity")
@@ -390,7 +409,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Smooth Tween Murni Anti-Detection)
+-- TAB 2: WAYPOINT LIST (300 Stud Safe Hybrid Teleport)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -439,7 +458,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteDeliveryTweenTeleport(part.CFrame)
+            ExecuteDeliveryWaypointTeleport(part.CFrame)
         end)
     end
     
@@ -499,4 +518,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Anti-Detection Delivery Smooth Tween Loaded!")
+print("✨ 300 Stud Safe Delivery Teleport Loaded!")
