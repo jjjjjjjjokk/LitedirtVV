@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Perfect Face-to-Face NPC Teleport
+-- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Hybrid Safe)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -147,10 +147,35 @@ pagesContainer.BackgroundTransparency = 1
 pagesContainer.ClipsDescendants = true
 pagesContainer.Parent = mainContainer
 
--- Sistem Hybrid Teleport: Mendarat pas di depan muka NPC
-local function ExecuteHybridTeleport(targetCFrame, isWaypoint)
+-- 1. Fungsi Teleport Instant Murni untuk Saved Locations
+local function ExecuteInstantTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
+    local seatPart = humanoid.SeatPart
+    local safeCFrame = targetCFrame + Vector3.new(0, 4, 0)
     
+    if seatPart then
+        local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
+        if vehicleModel and vehicleModel.PrimaryPart then
+            vehicleModel:PivotTo(safeCFrame)
+            for _, part in ipairs(vehicleModel:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                end
+            end
+        else
+            seatPart.CFrame = safeCFrame
+            seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        end
+    else
+        humanoidRootPart.CFrame = safeCFrame
+        humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    end
+end
+
+-- 2. Fungsi Hybrid Aman khusus DeliveryWaypoint (Pas di depan muka NPC / anti gagal quest)
+local function ExecuteDeliveryWaypointTeleport(targetCFrame)
+    if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
     local targetModelOrPart = humanoidRootPart
     
@@ -158,15 +183,7 @@ local function ExecuteHybridTeleport(targetCFrame, isWaypoint)
         targetModelOrPart = seatPart.AssemblyRootPart or seatPart
     end
     
-    local finalCFrame = targetCFrame
-    if isWaypoint then
-        -- Mengatur posisi tepat 6 stud di depan muka NPC (mengikuti arah pandang NPC)
-        finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
-    else
-        finalCFrame = targetCFrame + Vector3.new(0, 3, 0)
-    end
-    
-    -- Teleport instan awal ke jarak 80 stud di belakang posisi muka NPC
+    local finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
     local intermediateCFrame = finalCFrame + (targetCFrame.LookVector * -80) + Vector3.new(0, 5, 0)
     
     if seatPart then
@@ -182,7 +199,6 @@ local function ExecuteHybridTeleport(targetCFrame, isWaypoint)
     
     task.wait(0.05)
     
-    -- Tween halus meluncur mendekat pas ke depan muka NPC
     local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = TweenService:Create(targetModelOrPart, tweenInfo, {CFrame = finalCFrame})
     
@@ -296,7 +312,7 @@ local function CreateCategoryInPage(page, text, layoutOrder)
     return label
 end
 
--- TAB 1: LOCATIONS
+-- TAB 1: LOCATIONS (Instant TP Murni)
 local locPage = CreateTab("Locations", "📍 Saved Locations")
 CreateCategoryInPage(locPage, "💾 SAVE & SEQUENCE", 11)
 
@@ -317,8 +333,8 @@ CreateButtonInPage(locPage, "AutoTPSequence", "▶ Auto TP: 1 to Last Location",
     task.spawn(function()
         for _, loc in ipairs(savedLocations) do
             if not isAutoTPRunning then break end
-            ExecuteHybridTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)), false)
-            task.wait(1.5)
+            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
+            task.wait(1)
         end
         isAutoTPRunning = false
     end)
@@ -357,7 +373,7 @@ function RefreshLocations()
         Instance.new("UICorner", locBtn).CornerRadius = UDim.new(0, 8)
         
         locBtn.MouseButton1Click:Connect(function()
-            ExecuteHybridTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)), false)
+            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
         end)
         
         local delBtn = Instance.new("TextButton")
@@ -383,7 +399,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST
+-- TAB 2: WAYPOINT LIST (Hybrid Aman Khusus NPC Delivery)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -432,7 +448,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteHybridTeleport(part.CFrame, true)
+            ExecuteDeliveryWaypointTeleport(part.CFrame)
         end)
     end
     
@@ -492,4 +508,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Face-to-Face NPC Teleport Loaded!")
+print("✨ Final Focused Delivery Teleport Loaded!")
