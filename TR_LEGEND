@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (300 Stud Safe Hybrid)
+-- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Delayed Instant TP)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -173,26 +173,20 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- 2. Hybrid Teleport (Instan ke jarak 300 stud dari NPC, lalu Smooth Tween masuk ke depan muka NPC)
-local function ExecuteDeliveryWaypointTeleport(targetCFrame)
+-- 2. Delayed Instant TP khusus DeliveryWaypoint (Mengelabui sistem anti-cheat paket)
+local function ExecuteDelayedInstantDelivery(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
+    
+    -- Berikan jeda lambat 0.5 detik sebelum pindah agar sistem paket di game merespons dengan wajar
+    task.wait(0.5)
+    
     local seatPart = humanoid.SeatPart
-    local targetModelOrPart = humanoidRootPart
-    
-    if seatPart then
-        targetModelOrPart = seatPart.AssemblyRootPart or seatPart
-    end
-    
-    -- Posisi akhir tepat di depan muka NPC
     local finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
-    
-    -- Titik awal instan berada sejauh 300 stud di belakang NPC agar lolos dari deteksi server
-    local intermediateCFrame = finalCFrame + (targetCFrame.LookVector * -300) + Vector3.new(0, 5, 0)
     
     if seatPart then
         local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
         if vehicleModel and vehicleModel.PrimaryPart then
-            vehicleModel:PivotTo(intermediateCFrame)
+            vehicleModel:PivotTo(finalCFrame)
             for _, part in ipairs(vehicleModel:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -200,29 +194,13 @@ local function ExecuteDeliveryWaypointTeleport(targetCFrame)
                 end
             end
         else
-            seatPart.CFrame = intermediateCFrame
+            seatPart.CFrame = finalCFrame
+            seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         end
     else
-        humanoidRootPart.CFrame = intermediateCFrame
+        humanoidRootPart.CFrame = finalCFrame
+        humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
     end
-    
-    task.wait(0.08) -- Jeda mikro agar server game merender posisi 300 stud tersebut
-    
-    -- Tween masuk dengan mulus dari jarak 300 stud menuju depan muka NPC
-    local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tween = TweenService:Create(targetModelOrPart, tweenInfo, {CFrame = finalCFrame})
-    
-    local oldBodyVelocity = targetModelOrPart:FindFirstChild("SmoothTPVelocity")
-    if not oldBodyVelocity then
-        local bv = Instance.new("BodyVelocity")
-        bv.Name = "SmoothTPVelocity"
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.Velocity = Vector3.new(0, 0, 0)
-        bv.Parent = targetModelOrPart
-        tween.Completed:Connect(function() bv:Destroy() end)
-    end
-    
-    tween:Play()
 end
 
 local tabs = {}
@@ -409,7 +387,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (300 Stud Safe Hybrid Teleport)
+-- TAB 2: WAYPOINT LIST (Delayed Instant Delivery)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -458,7 +436,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteDeliveryWaypointTeleport(part.CFrame)
+            ExecuteDelayedInstantDelivery(part.CFrame)
         end)
     end
     
@@ -518,4 +496,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ 300 Stud Safe Delivery Teleport Loaded!")
+print("✨ Delayed Instant Delivery Teleport Loaded!")
