@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Stepped Forward Approach (20 to 5 Studs)
+-- Modern Tabbed Menu - Stepped Instant Teleport Aspal + Facing NPC
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -17,7 +17,6 @@ player.CharacterAdded:Connect(function(newChar)
     humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
 end)
 
--- Hapus GUI lama jika ada agar tidak menumpuk
 if playerGui:FindFirstChild("StableWaypointMenu") then
     playerGui.StableWaypointMenu:Destroy()
 end
@@ -148,7 +147,7 @@ pagesContainer.BackgroundTransparency = 1
 pagesContainer.ClipsDescendants = true
 pagesContainer.Parent = mainContainer
 
--- Fungsi Instant TP untuk Saved Locations
+-- 1. Instant TP untuk Saved Locations
 local function ExecuteInstantTeleport(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
@@ -174,22 +173,20 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- Fungsi Pendekatan Bertahap Maju (Dari 20 stud perlahan maju ke 5 stud di depan NPC)
-local function ExecuteSteppedForwardDelivery(targetCFrame)
+-- 2. Delivery Waypoint Teleport (Instant Bertahap di Aspal + Facing NPC)
+local function ExecuteSteppedInstantFacingDelivery(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
     local seatPart = humanoid.SeatPart
-    local targetModelOrPart = humanoidRootPart
     
-    if seatPart then
-        targetModelOrPart = seatPart.AssemblyRootPart or seatPart
-    end
+    local targetPos = targetCFrame.Position + Vector3.new(0, 3, 0)
     
-    -- Jarak bertahap maju mendekati NPC: 20, 15, 10, hingga 5 stud
-    local distances = {20, 15, 10, 5}
+    -- Jarak lompatan bertahap instan: 50 stud, 30 stud, lalu 15 stud pas di depan NPC
+    local steps = {50, 30, 15}
     
     task.spawn(function()
-        for _, d in ipairs(distances) do
-            local stepCFrame = targetCFrame + (targetCFrame.LookVector * d) + Vector3.new(0, 3, 0)
+        for _, dist in ipairs(steps) do
+            local spawnPos = targetPos + (targetCFrame.LookVector * dist)
+            local stepCFrame = CFrame.new(spawnPos, targetPos)
             
             if seatPart then
                 local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
@@ -210,7 +207,7 @@ local function ExecuteSteppedForwardDelivery(targetCFrame)
                 humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
             end
             
-            task.wait(0.05) -- Jeda mikro perpindahan antar jarak agar mulus
+            task.wait(0.04) -- Jeda mikro antar lompatan instan agar aman dari anti-cheat
         end
     end)
 end
@@ -399,7 +396,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Stepped Forward Approach 20 to 5 Studs)
+-- TAB 2: WAYPOINT LIST (Stepped Instant Aspal + Facing NPC)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -448,7 +445,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteSteppedForwardDelivery(part.CFrame)
+            ExecuteSteppedInstantFacingDelivery(part.CFrame)
         end)
     end
     
@@ -508,4 +505,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Stepped Forward Approach Loaded Successfully!")
+print("✨ Stepped Instant Aspal & Facing NPC Teleport Loaded Successfully!")
