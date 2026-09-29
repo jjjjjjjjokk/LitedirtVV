@@ -1,4 +1,4 @@
--- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Delayed Instant TP)
+-- Modern Tabbed Menu - Saved Locations (Instant) & Delivery Waypoint (Offset Safe Spawn)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -173,20 +173,18 @@ local function ExecuteInstantTeleport(targetCFrame)
     end
 end
 
--- 2. Delayed Instant TP khusus DeliveryWaypoint (Mengelabui sistem anti-cheat paket)
-local function ExecuteDelayedInstantDelivery(targetCFrame)
+-- 2. Delivery Waypoint Teleport (Spawn 100 stud di depan, tapi digeser sedikit ke samping agar tidak pas di badan NPC)
+local function ExecuteForward100Delivery(targetCFrame)
     if not humanoidRootPart or not humanoid then return end
-    
-    -- Berikan jeda lambat 0.5 detik sebelum pindah agar sistem paket di game merespons dengan wajar
-    task.wait(0.5)
-    
     local seatPart = humanoid.SeatPart
-    local finalCFrame = targetCFrame + (targetCFrame.LookVector * 6) + Vector3.new(0, 3, 0)
+    
+    -- Maju 100 stud, tapi digeser ke kanan (RightVector * 5) agar tidak persis di tengah badan NPC
+    local forwardCFrame = targetCFrame + (targetCFrame.LookVector * 100) + (targetCFrame.RightVector * 5) + Vector3.new(0, 4, 0)
     
     if seatPart then
         local vehicleModel = seatPart:FindFirstAncestorOfClass("Model")
         if vehicleModel and vehicleModel.PrimaryPart then
-            vehicleModel:PivotTo(finalCFrame)
+            vehicleModel:PivotTo(forwardCFrame)
             for _, part in ipairs(vehicleModel:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -194,11 +192,11 @@ local function ExecuteDelayedInstantDelivery(targetCFrame)
                 end
             end
         else
-            seatPart.CFrame = finalCFrame
+            seatPart.CFrame = forwardCFrame
             seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         end
     else
-        humanoidRootPart.CFrame = finalCFrame
+        humanoidRootPart.CFrame = forwardCFrame
         humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
     end
 end
@@ -387,7 +385,7 @@ function RefreshLocations()
 end
 RefreshLocations()
 
--- TAB 2: WAYPOINT LIST (Delayed Instant Delivery)
+-- TAB 2: WAYPOINT LIST (Offset Safe Spawn)
 local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
 CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
 
@@ -436,7 +434,7 @@ local function RefreshWaypointList()
         Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
         
         bBtn.MouseButton1Click:Connect(function()
-            ExecuteDelayedInstantDelivery(part.CFrame)
+            ExecuteForward100Delivery(part.CFrame)
         end)
     end
     
@@ -496,4 +494,4 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-print("✨ Delayed Instant Delivery Teleport Loaded!")
+print("✨ Offset Safe Delivery Teleport Loaded!")
