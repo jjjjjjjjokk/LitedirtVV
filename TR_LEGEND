@@ -1,0 +1,476 @@
+-- Modern Tabbed Menu - Perfect Instant TP (Vehicle Stabilizer & No Quest Fail)
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    humanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+if playerGui:FindFirstChild("StableWaypointMenu") then
+    playerGui.StableWaypointMenu:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "StableWaypointMenu"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = playerGui
+
+local colors = {
+    bg = Color3.fromRGB(20, 20, 30),
+    bg_light = Color3.fromRGB(30, 30, 45),
+    primary = Color3.fromRGB(100, 200, 255),
+    accent = Color3.fromRGB(255, 100, 150),
+    text = Color3.fromRGB(255, 255, 255),
+    success = Color3.fromRGB(100, 255, 100),
+    warning = Color3.fromRGB(255, 180, 80),
+}
+
+local fileName = "StableWaypoint_SavedLocations.json"
+local savedLocations = {}
+
+local function LoadLocations()
+    pcall(function()
+        if readfile and pcall(readfile, fileName) then
+            local content = readfile(fileName)
+            local decoded = HttpService:JSONDecode(content)
+            if type(decoded) == "table" then savedLocations = decoded end
+        end
+    end)
+end
+
+local function SaveLocationsToFile()
+    pcall(function()
+        if writefile then
+            writefile(fileName, HttpService:JSONEncode(savedLocations))
+        end
+    end)
+end
+
+LoadLocations()
+
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainContainer"
+mainContainer.Size = UDim2.new(0, 350, 0, 420)
+mainContainer.Position = UDim2.new(0.5, -175, 0.5, -210)
+mainContainer.BackgroundColor3 = colors.bg
+mainContainer.BorderSizePixel = 0
+mainContainer.ClipsDescendants = true
+mainContainer.Parent = screenGui
+
+local border = Instance.new("UICorner")
+border.CornerRadius = UDim.new(0, 12)
+border.Parent = mainContainer
+
+local borderStroke = Instance.new("UIStroke")
+borderStroke.Color = colors.primary
+borderStroke.Thickness = 2
+borderStroke.Transparency = 0.5
+borderStroke.Parent = mainContainer
+
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 45)
+header.BackgroundColor3 = colors.bg_light
+header.BorderSizePixel = 0
+header.Parent = mainContainer
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.Parent = header
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -90, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.TextColor3 = colors.primary
+title.TextSize = 15
+title.Font = Enum.Font.GothamBold
+title.Text = "⚡ WAYPOINT MANAGER"
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = header
+
+local collapseBtn = Instance.new("TextButton")
+collapseBtn.Size = UDim2.new(0, 26, 0, 26)
+collapseBtn.Position = UDim2.new(1, -66, 0, 9.5)
+collapseBtn.BackgroundColor3 = colors.primary
+collapseBtn.TextColor3 = colors.text
+collapseBtn.TextSize = 14
+collapseBtn.Font = Enum.Font.GothamBold
+collapseBtn.Text = "−"
+collapseBtn.BorderSizePixel = 0
+collapseBtn.Parent = header
+Instance.new("UICorner", collapseBtn).CornerRadius = UDim.new(0, 6)
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 26, 0, 26)
+closeBtn.Position = UDim2.new(1, -34, 0, 9.5)
+closeBtn.BackgroundColor3 = colors.accent
+closeBtn.TextColor3 = colors.text
+closeBtn.TextSize = 15
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Text = "×"
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = header
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(1, 0, 0, 38)
+tabBar.Position = UDim2.new(0, 0, 0, 45)
+tabBar.BackgroundColor3 = colors.bg_light
+tabBar.BorderSizePixel = 0
+tabBar.Parent = mainContainer
+
+local tabListLayout = Instance.new("UIListLayout")
+tabListLayout.Parent = tabBar
+tabListLayout.FillDirection = Enum.FillDirection.Horizontal
+tabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+tabListLayout.Padding = UDim.new(0, 5)
+
+local pagesContainer = Instance.new("Frame")
+pagesContainer.Size = UDim2.new(1, 0, 1, -83)
+pagesContainer.Position = UDim2.new(0, 0, 0, 83)
+pagesContainer.BackgroundTransparency = 1
+pagesContainer.ClipsDescendants = true
+pagesContainer.Parent = mainContainer
+
+-- Fungsi Instant Teleport dengan Stabilizer (Anti Kepental & Anti Nembus Lantai)
+local function ExecuteInstantTeleport(targetCFrame)
+    if not humanoidRootPart or not humanoid then return end
+    
+    local seatPart = humanoid.SeatPart
+    local targetModel = nil
+    
+    if seatPart then
+        targetModel = seatPart:FindFirstAncestorOfClass("Model")
+    end
+    
+    -- Beri ketinggian sedikit (Y + 4) agar tidak nembus lantai
+    local safeCFrame = targetCFrame + Vector3.new(0, 4, 0)
+    
+    if targetModel and targetModel.PrimaryPart then
+        targetModel:SetPrimaryPartCFrame(safeCFrame)
+        -- Matikan gaya dorong/kecepatan fisik agar kendaraan langsung stabil dan tidak mental
+        for _, part in ipairs(targetModel:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            end
+        end
+    elseif seatPart then
+        seatPart.CFrame = safeCFrame
+        seatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        seatPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+    else
+        humanoidRootPart.CFrame = safeCFrame
+        humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    end
+end
+
+local tabs = {}
+local pages = {}
+
+local function CreateTab(name, titleText)
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(0, 165, 0, 28)
+    tabBtn.BackgroundColor3 = colors.bg
+    tabBtn.TextColor3 = colors.text
+    tabBtn.TextSize = 11
+    tabBtn.Font = Enum.Font.GothamBold
+    tabBtn.Text = titleText
+    tabBtn.BorderSizePixel = 0
+    tabBtn.Parent = tabBar
+    Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 6)
+    
+    local page = Instance.new("ScrollingFrame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.ScrollBarThickness = 4
+    page.ScrollBarImageColor3 = colors.primary
+    page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    page.Visible = false
+    page.Parent = pagesContainer
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = page
+    layout.Padding = UDim.new(0, 6)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    tabs[name] = tabBtn
+    pages[name] = page
+    
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, tBtn in pairs(tabs) do tBtn.BackgroundColor3 = colors.bg; tBtn.TextColor3 = colors.text end
+        for _, pObj in pairs(pages) do pObj.Visible = false end
+        tabBtn.BackgroundColor3 = colors.primary
+        tabBtn.TextColor3 = colors.bg
+        page.Visible = true
+    end)
+    
+    return page
+end
+
+local function UpdatePageCanvas(page)
+    local layout = page:FindFirstChildOfClass("UIListLayout")
+    if not layout then return end
+    local totalSize = 0
+    for _, child in pairs(page:GetChildren()) do
+        if child:IsA("GuiObject") and child ~= layout then
+            totalSize = totalSize + child.Size.Y.Offset + 6
+        end
+    end
+    page.CanvasSize = UDim2.new(0, 0, 0, totalSize + 15)
+end
+
+local function CreateButtonInPage(page, name, text, callback, color, layoutOrder)
+    color = color or colors.primary
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, -16, 0, 38)
+    button.Position = UDim2.new(0, 8, 0, 0)
+    button.BackgroundColor3 = colors.bg_light
+    button.TextColor3 = colors.text
+    button.TextSize = 12
+    button.Font = Enum.Font.GothamSemibold
+    button.Text = text
+    button.BorderSizePixel = 0
+    button.LayoutOrder = layoutOrder or 0
+    button.Parent = page
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.7
+    stroke.Parent = button
+    
+    button.MouseButton1Click:Connect(function() if callback then callback() end end)
+    return button
+end
+
+local function CreateCategoryInPage(page, text, layoutOrder)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -16, 0, 22)
+    label.Position = UDim2.new(0, 8, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = colors.primary
+    label.TextSize = 11
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = layoutOrder or 0
+    label.Parent = page
+    return label
+end
+
+-- TAB 1: LOCATIONS
+local locPage = CreateTab("Locations", "📍 Saved Locations")
+CreateCategoryInPage(locPage, "💾 SAVE & SEQUENCE", 11)
+
+CreateButtonInPage(locPage, "SaveLocation", "➕ Save Current Location", function()
+    if not humanoidRootPart then return end
+    local targetPart = humanoid.SeatPart and (humanoid.SeatPart.AssemblyRootPart or humanoid.SeatPart) or humanoidRootPart
+    local pos = targetPart.Position
+    table.insert(savedLocations, {x = pos.X, y = pos.Y, z = pos.Z})
+    SaveLocationsToFile()
+    RefreshLocations()
+end, colors.success, 12)
+
+local isAutoTPRunning = false
+CreateButtonInPage(locPage, "AutoTPSequence", "▶ Auto TP: 1 to Last Location", function()
+    if #savedLocations == 0 then return end
+    if isAutoTPRunning then isAutoTPRunning = false return end
+    isAutoTPRunning = true
+    task.spawn(function()
+        for _, loc in ipairs(savedLocations) do
+            if not isAutoTPRunning then break end
+            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
+            task.wait(1)
+        end
+        isAutoTPRunning = false
+    end)
+end, colors.warning, 13)
+
+local savedLocationsContainer = Instance.new("Frame")
+savedLocationsContainer.Size = UDim2.new(1, 0, 0, 0)
+savedLocationsContainer.BackgroundTransparency = 1
+savedLocationsContainer.LayoutOrder = 20
+savedLocationsContainer.Parent = locPage
+local locLayout = Instance.new("UIListLayout")
+locLayout.Parent = savedLocationsContainer
+locLayout.Padding = UDim.new(0, 4)
+
+function RefreshLocations()
+    for _, child in pairs(savedLocationsContainer:GetChildren()) do
+        if child ~= locLayout then child:Destroy() end
+    end
+    if #savedLocations == 0 then
+        savedLocationsContainer.Size = UDim2.new(1, 0, 0, 0)
+        UpdatePageCanvas(locPage)
+        return
+    end
+    for idx, loc in ipairs(savedLocations) do
+        local locBtn = Instance.new("TextButton")
+        locBtn.Size = UDim2.new(1, -16, 0, 38)
+        locBtn.Position = UDim2.new(0, 8, 0, 0)
+        locBtn.BackgroundColor3 = colors.bg_light
+        locBtn.TextColor3 = colors.text
+        locBtn.TextSize = 11
+        locBtn.Font = Enum.Font.GothamSemibold
+        locBtn.Text = string.format("#%d - TP: (%.0f, %.0f, %.0f)", idx, loc.x, loc.y, loc.z)
+        locBtn.BorderSizePixel = 0
+        locBtn.LayoutOrder = idx
+        locBtn.Parent = savedLocationsContainer
+        Instance.new("UICorner", locBtn).CornerRadius = UDim.new(0, 8)
+        
+        locBtn.MouseButton1Click:Connect(function()
+            ExecuteInstantTeleport(CFrame.new(Vector3.new(loc.x, loc.y, loc.z)))
+        end)
+        
+        local delBtn = Instance.new("TextButton")
+        delBtn.Size = UDim2.new(0, 26, 0, 26)
+        delBtn.Position = UDim2.new(1, -34, 0.5, -13)
+        delBtn.BackgroundColor3 = colors.accent
+        delBtn.TextColor3 = colors.text
+        delBtn.TextSize = 12
+        delBtn.Font = Enum.Font.GothamBold
+        delBtn.Text = "×"
+        delBtn.BorderSizePixel = 0
+        delBtn.Parent = locBtn
+        Instance.new("UICorner", delBtn).CornerRadius = UDim.new(0, 6)
+        
+        delBtn.MouseButton1Click:Connect(function()
+            table.remove(savedLocations, idx)
+            SaveLocationsToFile()
+            RefreshLocations()
+        end)
+    end
+    savedLocationsContainer.Size = UDim2.new(1, 0, 0, (#savedLocations + 1) * 42)
+    UpdatePageCanvas(locPage)
+end
+RefreshLocations()
+
+-- TAB 2: WAYPOINT LIST
+local boardListPage = CreateTab("WaypointList", "📋 DeliveryWaypoints")
+CreateCategoryInPage(boardListPage, "📋 DETECTED WAYPOINTS", 10)
+
+local waypointContainer = Instance.new("Frame")
+waypointContainer.Size = UDim2.new(1, 0, 0, 0)
+waypointContainer.BackgroundTransparency = 1
+waypointContainer.LayoutOrder = 12
+waypointContainer.Parent = boardListPage
+local waypointLayout = Instance.new("UIListLayout")
+waypointLayout.Parent = waypointContainer
+waypointLayout.Padding = UDim.new(0, 4)
+
+local function RefreshWaypointList()
+    for _, child in pairs(waypointContainer:GetChildren()) do
+        if child ~= waypointLayout then child:Destroy() end
+    end
+    
+    local waypointList = {}
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if string.find(string.lower(obj.Name), "deliverywaypoint") then
+            local targetPart = obj:IsA("BasePart") and obj or (obj:IsA("Model") and (obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")))
+            if targetPart and not table.find(waypointList, targetPart) then
+                table.insert(waypointList, targetPart)
+            end
+        end
+    end
+    
+    if #waypointList == 0 then
+        waypointContainer.Size = UDim2.new(1, 0, 0, 0)
+        UpdatePageCanvas(boardListPage)
+        return
+    end
+    
+    for idx, part in ipairs(waypointList) do
+        local bBtn = Instance.new("TextButton")
+        bBtn.Size = UDim2.new(1, -16, 0, 38)
+        bBtn.Position = UDim2.new(0, 8, 0, 0)
+        bBtn.BackgroundColor3 = colors.bg_light
+        bBtn.TextColor3 = colors.text
+        bBtn.TextSize = 11
+        bBtn.Font = Enum.Font.GothamSemibold
+        bBtn.Text = "📌 Waypoint: " .. part.Name
+        bBtn.BorderSizePixel = 0
+        bBtn.LayoutOrder = idx
+        bBtn.Parent = waypointContainer
+        Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0, 8)
+        
+        bBtn.MouseButton1Click:Connect(function()
+            ExecuteInstantTeleport(part.CFrame)
+        end)
+    end
+    
+    waypointContainer.Size = UDim2.new(1, 0, 0, (#waypointList) * 42)
+    UpdatePageCanvas(boardListPage)
+end
+
+CreateButtonInPage(boardListPage, "RefreshWaypoints", "🔄 Refresh Waypoint List", function()
+    RefreshWaypointList()
+end, colors.warning, 11)
+
+RefreshWaypointList()
+
+tabs["Locations"].BackgroundColor3 = colors.primary
+tabs["Locations"].TextColor3 = colors.bg
+locPage.Visible = true
+
+collapseBtn.MouseButton1Click:Connect(function()
+    if tabBar.Visible then
+        tabBar.Visible = false
+        pagesContainer.Visible = false
+        TweenService:Create(mainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 350, 0, 45)}):Play()
+        collapseBtn.Text = "+"
+    else
+        tabBar.Visible = true
+        pagesContainer.Visible = true
+        TweenService:Create(mainContainer, TweenInfo.new(0.3), {Size = UDim2.new(0, 350, 0, 420)}):Play()
+        collapseBtn.Text = "−"
+    end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    local t = TweenService:Create(mainContainer, TweenInfo.new(0.2), {Position = UDim2.new(0.5, -175, 1, 100)})
+    t:Play()
+    t.Completed:Connect(function() screenGui:Destroy() end)
+end)
+
+local dragging, dragStart, startPos
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainContainer.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        mainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+print("✨ Perfect Instant Vehicle Teleport Loaded!")
