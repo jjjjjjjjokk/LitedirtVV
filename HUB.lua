@@ -108,10 +108,16 @@ local successStart, err = pcall(function()
     -- DAFTAR SCRIPT
     -- ==========================================
     
-    -- Tombol 1: Panel Ride Storm (Link dari GitHub Lu)
+    -- Tombol 1: Panel Ride Storm
     buatTombolScript(
-        "⚡Ride Storm", 
+        "⚡ Ride Storm", 
         "https://raw.githubusercontent.com/litedirt67/LitedirtVV/refs/heads/Litedirt-scriptlua/WMWMWMWMWMWMWMWMWMWM.LUA"
+    )
+
+    -- Tombol 2: Panel Ride a pet (Baru ditambahkan)
+    buatTombolScript(
+        "🐾 Ride a Pet", 
+        "https://raw.githubusercontent.com/litedirt67/LitedirtVV/refs/heads/Litedirt-scriptlua/Ride_a_pet"
     )
 
     -- Biar scroll-nya pas sama jumlah tombol
