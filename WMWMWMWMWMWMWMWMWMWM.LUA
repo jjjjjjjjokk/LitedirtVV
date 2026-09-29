@@ -1,6 +1,15 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/fluent.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+-- // LITEDIRT CUSTOM UI (NO EXTERNAL LIBRARY DEPENDENCY) // --
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- Hapus UI lama jika ada agar tidak numpuk
+if CoreGui:FindFirstChild("LitedirtCustomUI") then
+    CoreGui.LitedirtCustomUI:Destroy()
+end
 
 local currentLang = "EN"
 local texts = {
@@ -21,7 +30,7 @@ local texts = {
         autoTPDelay = "Auto TP Delay (seconds)",
         autoTP = "Auto TP",
         preset = "📦 Load Preset: Ride Storm",
-        langLabel = "🌐 Language / Bahasa / Idioma",
+        langLabel = "🌐 Language",
         notifSuccess = "Success",
         notifPos = "Position Captured!",
         notifSaved = "Saved",
@@ -85,26 +94,136 @@ local function t(key)
     return texts[currentLang][key] or texts["EN"][key] or key
 end
 
-local Window = Fluent:CreateWindow({
-    Title = t("title"),
-    SubTitle = "by Community (Fluent UI)",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.LeftControl
-})
+-- ScreenGui Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "LitedirtCustomUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local Tabs = {
-    TP = Window:AddTab({ Title = t("tabTP"), Icon = "globe" }),
-    Settings = Window:AddTab({ Title = t("tabSet"), Icon = "settings" })
-}
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+MainFrame.Size = UDim2.new(0, 550, 0, 360)
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-local HttpService = game:GetService("HttpService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 8)
 
+-- TopBar
+local TopBar = Instance.new("Frame", MainFrame)
+TopBar.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.BorderSizePixel = 0
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
+
+local TitleLabel = Instance.new("TextLabel", TopBar)
+TitleLabel.Text = t("title")
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 13
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.BackgroundTransparency = 1
+
+local CloseBtn = Instance.new("TextButton", TopBar)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(200, 60, 60)
+CloseBtn.TextSize = 14
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(1, -35, 0, 0)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Sidebar Tabs
+local Sidebar = Instance.new("ScrollingFrame", MainFrame)
+Sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+Sidebar.BorderSizePixel = 0
+Sidebar.Position = UDim2.new(0, 0, 0, 35)
+Sidebar.Size = UDim2.new(0, 150, 1, -35)
+Sidebar.CanvasSize = UDim2.new(0, 0, 0, 100)
+Sidebar.ScrollBarThickness = 2
+
+local TabTPBtn = Instance.new("TextButton", Sidebar)
+TabTPBtn.Text = "🌍 Teleport"
+TabTPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+TabTPBtn.TextSize = 12
+TabTPBtn.Font = Enum.Font.GothamMedium
+TabTPBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+TabTPBtn.Size = UDim2.new(1, -16, 0, 35)
+TabTPBtn.Position = UDim2.new(0, 8, 0, 10)
+Instance.new("UICorner", TabTPBtn).CornerRadius = UDim.new(0, 6)
+
+local TabSetBtn = Instance.new("TextButton", Sidebar)
+TabSetBtn.Text = "⚙ Settings"
+TabSetBtn.TextColor3 = Color3.fromRGB(170, 170, 170)
+TabSetBtn.TextSize = 12
+TabSetBtn.Font = Enum.Font.GothamMedium
+TabSetBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+TabSetBtn.Size = UDim2.new(1, -16, 0, 35)
+TabSetBtn.Position = UDim2.new(0, 8, 0, 55)
+Instance.new("UICorner", TabSetBtn).CornerRadius = UDim.new(0, 6)
+
+-- Containers
+local ContainerTP = Instance.new("ScrollingFrame", MainFrame)
+ContainerTP.BackgroundTransparency = 1
+ContainerTP.Position = UDim2.new(0, 160, 0, 45)
+ContainerTP.Size = UDim2.new(1, -170, 1, -55)
+ContainerTP.CanvasSize = UDim2.new(0, 0, 0, 600)
+ContainerTP.ScrollBarThickness = 4
+
+local ContainerSet = Instance.new("ScrollingFrame", MainFrame)
+ContainerSet.BackgroundTransparency = 1
+ContainerSet.Position = UDim2.new(0, 160, 0, 45)
+ContainerSet.Size = UDim2.new(1, -170, 1, -55)
+ContainerSet.CanvasSize = UDim2.new(0, 0, 0, 700)
+ContainerSet.Visible = false
+ContainerSet.ScrollBarThickness = 4
+
+TabTPBtn.MouseButton1Click:Connect(function()
+    ContainerTP.Visible = true
+    ContainerSet.Visible = false
+    TabTPBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    TabTPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabSetBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    TabSetBtn.TextColor3 = Color3.fromRGB(170, 170, 170)
+end)
+
+TabSetBtn.MouseButton1Click:Connect(function()
+    ContainerTP.Visible = false
+    ContainerSet.Visible = true
+    TabSetBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    TabSetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabTPBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    TabTPBtn.TextColor3 = Color3.fromRGB(170, 170, 170)
+end)
+
+-- Notif System
+local function sendNotif(title, msg)
+    local notif = Instance.new("TextLabel", ScreenGui)
+    notif.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+    notif.TextSize = 12
+    notif.Font = Enum.Font.GothamBold
+    notif.Size = UDim2.new(0, 220, 0, 40)
+    notif.Position = UDim2.new(1, -230, 1, -60)
+    notif.Text = "<b>" .. title .. "</b>\n" .. msg
+    notif.RichText = true
+    Instance.new("UICorner", notif).CornerRadius = UDim.new(0, 6)
+    task.delay(2, function()
+        notif:Destroy()
+    end)
+end
+
+-- Logic & Data
 local fileName = "cordinat-litedirr.json"
 local daftarLokasi = {}
 
@@ -132,59 +251,61 @@ muatData()
 local inputNama = ""
 local inputCoord = ""
 
-Tabs.TP:AddInput("InputNama", {
-    Title = t("nameInput"),
-    Default = "",
-    Placeholder = t("namePlaceholder"),
-    Numeric = false,
-    Finished = false,
-    Callback = function(Value)
-        inputNama = Value
-    end
-})
+-- UI Elements TP Tab
+local function createInput(parent, placeholder, yPos, callback)
+    local box = Instance.new("TextBox", parent)
+    box.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+    box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    box.PlaceholderText = placeholder
+    box.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+    box.Text = ""
+    box.TextSize = 12
+    box.Font = Enum.Font.Gotham
+    box.Size = UDim2.new(1, -15, 0, 32)
+    box.Position = UDim2.new(0, 0, 0, yPos)
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+    box.FocusLost:Connect(function()
+        callback(box.Text)
+    end)
+    return box
+end
 
-Tabs.TP:AddInput("InputCoord", {
-    Title = t("coordInput"),
-    Default = "",
-    Placeholder = t("coordPlaceholder"),
-    Numeric = false,
-    Finished = false,
-    Callback = function(Value)
-        inputCoord = Value
-    end
-})
+local function createButton(parent, text, yPos, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = text
+    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamMedium
+    btn.Size = UDim2.new(1, -15, 0, 32)
+    btn.Position = UDim2.new(0, 0, 0, yPos)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
 
-Tabs.TP:AddButton({
-    Title = t("getPos"),
-    Description = "",
-    Callback = function()
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local pos = LocalPlayer.Character.HumanoidRootPart.Position
-            inputCoord = string.format("%.1f, %.1f, %.1f", pos.X, pos.Y, pos.Z)
-            Fluent:Notify({Title = t("notifSuccess"), Content = t("notifPos"), Duration = 2})
+createInput(ContainerTP, t("namePlaceholder"), 10, function(txt) inputNama = txt end)
+local coordBox = createInput(ContainerTP, t("coordPlaceholder"), 50, function(txt) inputCoord = txt end)
+
+createButton(ContainerTP, t("getPos"), 90, function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local pos = LocalPlayer.Character.HumanoidRootPart.Position
+        inputCoord = string.format("%.1f, %.1f, %.1f", pos.X, pos.Y, pos.Z)
+        coordBox.Text = inputCoord
+        sendNotif(t("notifSuccess"), t("notifPos"))
+    end
+end)
+
+createButton(ContainerTP, t("save"), 130, function()
+    if inputNama ~= "" and inputCoord ~= "" then
+        local split = string.split(inputCoord, ",")
+        if #split >= 3 then
+            table.insert(daftarLokasi, {Nama = inputNama, X = tonumber(split[1]), Y = tonumber(split[2]), Z = tonumber(split[3])})
+            simpanData()
+            sendNotif(t("notifSaved"), t("notifLocSaved"))
         end
     end
-})
-
-Tabs.TP:AddButton({
-    Title = t("save"),
-    Description = "",
-    Callback = function()
-        if inputNama ~= "" and inputCoord ~= "" then
-            local split = string.split(inputCoord, ",")
-            if #split >= 3 then
-                table.insert(daftarLokasi, {Nama = inputNama, X = tonumber(split[1]), Y = tonumber(split[2]), Z = tonumber(split[3])})
-                simpanData()
-                Fluent:Notify({Title = t("notifSaved"), Content = t("notifLocSaved"), Duration = 2})
-            end
-        end
-    end
-})
-
-Tabs.TP:AddParagraph({
-    Title = t("savedSec"),
-    Content = "List of saved custom locations below:"
-})
+end)
 
 -- Smooth Tween Teleport Function
 local function teleportKe(x, y, z)
@@ -220,48 +341,52 @@ local function teleportKe(x, y, z)
     end
 end
 
-for _, data in ipairs(daftarLokasi) do
-    Tabs.TP:AddButton({
-        Title = "TP to: " .. data.Nama,
-        Description = string.format("X: %.1f | Y: %.1f | Z: %.1f", data.X, data.Y, data.Z),
-        Callback = function()
+-- Render Saved Locations List
+local function renderLocations()
+    for _, child in ipairs(ContainerTP:GetChildren()) do
+        if child.Name == "DynamicTPBtn" then child:Destroy() end
+    end
+    
+    local startY = 180
+    for _, data in ipairs(daftarLokasi) do
+        local btn = Instance.new("TextButton", ContainerTP)
+        btn.Name = "DynamicTPBtn"
+        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        btn.TextColor3 = Color3.fromRGB(100, 220, 255)
+        btn.Text = "TP to: " .. data.Nama
+        btn.TextSize = 12
+        btn.Font = Enum.Font.GothamMedium
+        btn.Size = UDim2.new(1, -15, 0, 32)
+        btn.Position = UDim2.new(0, 0, 0, startY)
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        
+        btn.MouseButton1Click:Connect(function()
             teleportKe(data.X, data.Y, data.Z)
-        end
-    })
+        end)
+        startY = startY + 40
+    end
+    ContainerTP.CanvasSize = UDim2.new(0, 0, 0, startY + 20)
 end
+renderLocations()
 
+-- Settings Tab Logic
 local holdTimeInput = 1.5
 local delayTimeInput = 0.5
 local autoTPDelayInput = 3
 
-Tabs.Settings:AddInput("HoldInput", {
-    Title = t("holdInput"),
-    Default = "1.5",
-    Placeholder = "1.5",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        holdTimeInput = tonumber(Value) or 1.5
-    end
-})
+createInput(ContainerSet, "Hold Auto E (seconds) - Default: 1.5", 10, function(txt) holdTimeInput = tonumber(txt) or 1.5 end)
+createInput(ContainerSet, "Delay Auto E (seconds) - Default: 0.5", 50, function(txt) delayTimeInput = tonumber(txt) or 0.5 end)
 
-Tabs.Settings:AddInput("DelayInput", {
-    Title = t("delayInput"),
-    Default = "0.5",
-    Placeholder = "0.5",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        delayTimeInput = tonumber(Value) or 0.5
-    end
-})
-
-local AutoEToggle = Tabs.Settings:AddToggle("AutoEToggle", {Title = t("autoE"), Default = false })
-AutoEToggle:OnChanged(function()
-    local autoEAktif = AutoEToggle.Value
+-- Auto E Toggle
+local autoEAktif = false
+local autoEBtn = createButton(ContainerSet, "Auto E: OFF", 90, function()
+    autoEAktif = not autoEAktif
+    autoEBtn.Text = autoEAktif and "Auto E: ON" or "Auto E: OFF"
+    autoEBtn.BackgroundColor3 = autoEAktif and Color3.fromRGB(40, 120, 60) or Color3.fromRGB(45, 45, 60)
+    
     if autoEAktif then
         task.spawn(function()
-            while AutoEToggle.Value do
+            while autoEAktif do
                 local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                 if hrp then
                     local adaPromptDekat = false
@@ -287,24 +412,19 @@ AutoEToggle:OnChanged(function()
     end
 end)
 
-Tabs.Settings:AddInput("AutoTPDelayInput", {
-    Title = t("autoTPDelay"),
-    Default = "3",
-    Placeholder = "3",
-    Numeric = true,
-    Finished = false,
-    Callback = function(Value)
-        autoTPDelayInput = tonumber(Value) or 3
-    end
-})
+createInput(ContainerSet, "Auto TP Delay (seconds) - Default: 3", 140, function(txt) autoTPDelayInput = tonumber(txt) or 3 end)
 
-local AutoTPToggle = Tabs.Settings:AddToggle("AutoTPToggle", {Title = t("autoTP"), Default = false })
-AutoTPToggle:OnChanged(function()
-    local autoTPAktif = AutoTPToggle.Value
+-- Auto TP Toggle
+local autoTPAktif = false
+local autoTPBtn = createButton(ContainerSet, "Auto TP: OFF", 180, function()
+    autoTPAktif = not autoTPAktif
+    autoTPBtn.Text = autoTPAktif and "Auto TP: ON" or "Auto TP: OFF"
+    autoTPBtn.BackgroundColor3 = autoTPAktif and Color3.fromRGB(40, 120, 60) or Color3.fromRGB(45, 45, 60)
+    
     if autoTPAktif then
         task.spawn(function()
             local indexTP = 1
-            while AutoTPToggle.Value do
+            while autoTPAktif do
                 if #daftarLokasi == 0 then break end
                 if indexTP > #daftarLokasi then indexTP = 1 end
                 local loc = daftarLokasi[indexTP]
@@ -316,43 +436,38 @@ AutoTPToggle:OnChanged(function()
     end
 end)
 
-Tabs.Settings:AddButton({
-    Title = t("preset"),
-    Description = "",
-    Callback = function()
-        local dataPreset = {
-            {Y = 2078, X = -1587, Z = -1820, Nama = "Ride Storm - 1A"},
-            {Y = 2111, X = 13968, Z = 7278, Nama = "Ride Storm - 1B"},
-            {Y = 2076, X = -1074, Z = -7919, Nama = "Ride Storm - 2A"},
-            {Y = 2231, X = -4278, Z = 22925, Nama = "Ride Storm - 2B"}
-        }
-        for _, loc in ipairs(dataPreset) do
-            table.insert(daftarLokasi, {Nama = loc.Nama, X = loc.X, Y = loc.Y, Z = loc.Z})
-        end
-        simpanData()
-        Fluent:Notify({Title = t("notifPreset"), Content = t("notifPresetDesc"), Duration = 2})
+createButton(ContainerSet, t("preset"), 230, function()
+    local dataPreset = {
+        {Y = 2078, X = -1587, Z = -1820, Nama = "Ride Storm - 1A"},
+        {Y = 2111, X = 13968, Z = 7278, Nama = "Ride Storm - 1B"},
+        {Y = 2076, X = -1074, Z = -7919, Nama = "Ride Storm - 2A"},
+        {Y = 2231, X = -4278, Z = 22925, Nama = "Ride Storm - 2B"}
+    }
+    for _, loc in ipairs(dataPreset) do
+        table.insert(daftarLokasi, {Nama = loc.Nama, X = loc.X, Y = loc.Y, Z = loc.Z})
     end
-})
+    simpanData()
+    renderLocations()
+    sendNotif(t("notifPreset"), t("notifPresetDesc"))
+end)
 
-Tabs.Settings:AddDropdown("LangDropdown", {
-    Title = t("langLabel"),
-    Values = {"English", "Português", "Indo"},
-    Default = 1,
-    Callback = function(Value)
-        if Value == "English" then
-            currentLang = "EN"
-        elseif Value == "Português" then
-            currentLang = "PT"
-        elseif Value == "Indo" then
-            currentLang = "ID"
-        end
-        Fluent:Notify({Title = "Language", Content = "Language changed. Please re-execute script to update UI elements.", Duration = 3})
-    end
-})
+-- Language Change Buttons
+createButton(ContainerSet, "🌐 Language: English (EN)", 280, function()
+    currentLang = "EN"
+    TitleLabel.Text = t("title")
+    sendNotif("Language", "Changed to English")
+end)
 
-Window:SelectTab(1)
-Fluent:Notify({
-    Title = "LITEDIRT",
-    Content = "Loaded successfully with Fluent UI & Smooth Tween!",
-    Duration = 5
-})
+createButton(ContainerSet, "🌐 Idioma: Português (PT)", 320, function()
+    currentLang = "PT"
+    TitleLabel.Text = t("title")
+    sendNotif("Idioma", "Alterado para Português")
+end)
+
+createButton(ContainerSet, "🌐 Bahasa: Indonesia (ID)", 360, function()
+    currentLang = "ID"
+    TitleLabel.Text = t("title")
+    sendNotif("Bahasa", "Diubah ke Bahasa Indonesia")
+end)
+
+sendNotif("LITEDIRT", "Custom Menu Loaded Successfully!")
