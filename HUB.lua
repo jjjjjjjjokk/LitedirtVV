@@ -43,7 +43,7 @@ local successStart, err = pcall(function()
     HubFrame.Position = UDim2.new(0.5, -160, 0.5, -120)
     HubFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
     HubFrame.Active = true
-    HubFrame.Draggable = true
+    HubFrame.Draggable = false
     HubFrame.Parent = HubGui
     applyCorner(HubFrame, 12)
 
@@ -60,7 +60,7 @@ local successStart, err = pcall(function()
     local InfoText = Instance.new("TextLabel")
     InfoText.Size = UDim2.new(1, -30, 0, 40)
     InfoText.Position = UDim2.new(0, 15, 0, 50)
-    InfoText.Text = "Pilih script yang ingin kamu jalankan:"
+    InfoText.Text = "CHOOSE ANY:"
     InfoText.TextColor3 = Color3.fromRGB(180, 180, 200)
     InfoText.BackgroundTransparency = 1
     InfoText.Font = Enum.Font.Gotham
@@ -94,7 +94,7 @@ local successStart, err = pcall(function()
         applyCorner(btn, 8)
 
         btn.MouseButton1Down:Connect(function()
-            btn.Text = "Memuat..."
+            btn.Text = "CLICK SUB"
             btn.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
             task.wait(0.5) 
             pcall(function() HubGui:Destroy() end)
@@ -129,3 +129,4 @@ end)
 if not successStart then
     print("Ada kegagalan memuat GUI: ", tostring(err))
 end
+
